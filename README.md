@@ -112,12 +112,12 @@ flowchart LR
     E --> F[Dashboard]
 
 ## 🔥 Core Capabilities
-## Real-time traffic capture
-## Flow-based feature engineering
-## Hybrid ML anomaly detection
-## Cloud inference API
-## Live visualization dashboard
-## Custom anomaly packet simulation
+**Real-time traffic capture**
+**Flow-based feature engineering**
+**Hybrid ML anomaly detection**
+**Cloud inference API**
+**Live visualization dashboard**
+**Custom anomaly packet simulation**
 
 
 ---
@@ -148,33 +148,19 @@ This system uses a **Hybrid Anomaly Detection Pipeline** combining:
 
 ---
 
-### 🔗 Combined Workflow
-
-Network Traffic
-      ↓
-Feature Engineering
-      ↓
-StandardScaler
-      ↓
-Isolation Forest (Anomaly Score)
-      ↓
-Classifier (Final Decision)
-      ↓
-Confidence Score 
-
 ## 🧪 ML Pipeline (Production Ready)
 
-Raw Packets  
+**Raw Packets** 
 ↓  
-Flow Feature Engineering  
+**Flow Feature Engineering**  
 ↓  
-StandardScaler (trained)  
+**StandardScaler (trained)** 
 ↓  
-Isolation Forest  
+**Isolation Forest**  
 ↓  
-Classifier  
+**Classifier**  
 ↓  
-Confidence Score  
+**Confidence Score**  
 
 ---
 
@@ -220,6 +206,7 @@ Confidence Score
 |--------|------|
 | Backend | Flask |
 | ML | Scikit-learn |
+| Models | isolationForest, Classifer |
 | Data | Pandas, NumPy |
 | Frontend | HTML, CSS, JS |
 | Charts | Chart.js |
@@ -233,7 +220,7 @@ Confidence Score
 3. pip install -r requirements.txt
 4. python app.py
 
-📂 Structure
+## 📂 Structure
 RealTime-Anomaly-Detection/
 │── app.py
 │── monitor.py
