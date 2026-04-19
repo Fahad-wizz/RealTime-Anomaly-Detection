@@ -454,8 +454,8 @@ def classify_live_flow(feature_row):
     if classifier_label != "Normal" and confidence > 60:
         return -1, classifier_label, round(confidence, 2)
 
-    if anomaly_flag == -1 and confidence > 60:
-        return -1, "Anomaly", confidence
+    if anomaly_flag == -1:
+        return -1, "Anomaly", 80.0
 
     return 1, "Normal", round(confidence, 2)
 
@@ -469,25 +469,18 @@ def ingest_live_data():
         if not data:
             return jsonify({"error": "No data received"}), 400
 
-        # ================= HEARTBEAT (FIRST PRIORITY) =================
-        if isinstance(data, dict) and data.get("heartbeat"):
-            LAST_AGENT_TIME = time.time()
-            print("💓 Heartbeat received")
-            return jsonify({"status": "alive"})
-
-        # ================= NORMAL FLOW DATA =================
-        if not isinstance(data, list):
-            return jsonify({"error": "Expected a list of flows"}), 400
+        # ✅ normalize input
+        rows = data if isinstance(data, list) else [data]
 
         processed = 0
 
-        for row in data:
-            # 🔥 sanitize metadata
+        for row in rows:
+            # 🔥 sanitize metadata (VERY IMPORTANT)
             src = str(row.get("src", "N/A"))
             dst = str(row.get("dst", "N/A"))
             proto = str(row.get("proto", "Unknown"))
 
-            # 🔥 feature extraction
+            # 🔥 build feature input
             feature_input = {k: row.get(k, 0) for k in MODEL_FEATURE_COLUMNS}
 
             pred, attack_type, confidence = classify_live_flow(feature_input)
@@ -516,10 +509,10 @@ def ingest_live_data():
 
             processed += 1
 
-        # ================= UPDATE AGENT STATUS =================
+        # 🔥 update heartbeat AFTER success
         LAST_AGENT_TIME = time.time()
 
-        # ================= MEMORY CONTROL =================
+        # ✅ prevent memory overflow
         if len(LIVE_DATA) > MAX_BUFFER:
             LIVE_DATA = LIVE_DATA[-MAX_BUFFER:]
 

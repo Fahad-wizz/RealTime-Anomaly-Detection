@@ -34,20 +34,16 @@ while True:
     data = packet_queue.get()
 
     key, flow = flow_features.update_flow(data)
-    print(f"Flow Update: packets={flow.get('packet_count', 0)}")
 
-    if flow.get("packet_count", 0) < 30:
+    if not flow_features.is_flow_ready(flow):
         continue
 
     feature_row = flow_features.extract_features(flow)
-    print("FEATURE:", feature_row)
 
     # ✅ attach metadata (IMPORTANT)
     feature_row["src"] = data.get("src")
     feature_row["dst"] = data.get("dst")
     feature_row["proto"] = data.get("proto")
-
-    
 
     batch.append(feature_row)
 
@@ -60,6 +56,6 @@ while True:
         last_send_time = now
 
     # cleanup
-    #flow_features.flows.pop(key, None)
+    flow_features.flows.pop(key, None)
 
     #time.sleep(0.01)  # small throttle

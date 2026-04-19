@@ -1,6 +1,11 @@
-from scapy.all import get_if_list
+from scapy.all import get_if_list, get_if_addr
 
-print("Available Interfaces:\n")
+print("\nAvailable Interfaces:\n")
 
 for iface in get_if_list():
-    print(iface)
+    try:
+        ip = get_if_addr(iface)
+    except:
+        ip = "No IP"
+
+    print(f"{iface}  --->  {ip}")

@@ -133,7 +133,7 @@ def train_isolation_forest(df):
 
     model = IsolationForest(
         n_estimators=150,   # slightly reduced for speed
-        contamination=0.05,
+        contamination=0.02,
         random_state=42,
     )
 
