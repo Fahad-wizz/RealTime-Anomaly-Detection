@@ -227,68 +227,84 @@ def build_flow_features_from_packets(df):
 
 
 def map_cicids_to_model_features(df):
-
     df = df.copy()
 
-    # 🔥 NORMALIZE COLUMNS
+    # -------------------------------
+    # STEP 1: NORMALIZE COLUMNS
+    # -------------------------------
     df.columns = df.columns.str.strip().str.lower()
 
-    # 🔥 ROBUST RENAME (handles BOTH cases)
-    rename_map = {
-        # FEATURES
-        "total fwd packets": "packet_count",
-        "total length of fwd packets": "byte_count",
-        "flow duration": "duration",
-        "flow packets/s": "packet_rate",
-        "flow bytes/s": "byte_rate",
+    print("📥 RAW COLUMNS:", df.columns.tolist())
 
-        # 🔥 METADATA (FIXED HERE)
-        "source ip": "src",
-        "source": "src",
+    # -------------------------------
+    # STEP 2: SMART COLUMN FINDER
+    # -------------------------------
+    def find_column(possible_keywords):
+        for col in df.columns:
+            for key in possible_keywords:
+                if key in col:
+                    return col
+        return None
 
-        "destination ip": "dst",
-        "destination": "dst",
-
-        "protocol": "proto",
-    }
-
-    df = df.rename(columns=rename_map)
-
-    # 🔥 DEBUG (IMPORTANT — KEEP TEMPORARILY)
-    print("COLUMNS AFTER RENAME:", df.columns.tolist())
+    # -------------------------------
+    # STEP 3: EXTRACT METADATA
+    # -------------------------------
+    src_col = find_column(["source", "src"])
+    dst_col = find_column(["destination", "dst"])
+    proto_col = find_column(["protocol", "proto"])
 
     out = pd.DataFrame(index=df.index)
 
-    # 🔥 SAFE METADATA EXTRACTION
-    out["src"] = df["src"] if "src" in df.columns else "N/A"
-    out["dst"] = df["dst"] if "dst" in df.columns else "N/A"
-    out["proto"] = df["proto"] if "proto" in df.columns else "Unknown"
+    if not src_col:
+        raise ValueError("❌ Could not find SOURCE column")
+    if not dst_col:
+        raise ValueError("❌ Could not find DESTINATION column")
 
-    # 🔥 FORCE CLEAN VALUES (CRITICAL)
-    out["src"] = out["src"].astype(str)
-    out["dst"] = out["dst"].astype(str)
-    out["proto"] = out["proto"].astype(str)
+    out["src"] = df[src_col].astype(str)
+    out["dst"] = df[dst_col].astype(str)
+    out["proto"] = df[proto_col].astype(str) if proto_col else "Unknown"
 
+    # Clean metadata
     out["src"] = out["src"].replace(["nan", "None", "", "NaN"], "N/A")
     out["dst"] = out["dst"].replace(["nan", "None", "", "NaN"], "N/A")
     out["proto"] = out["proto"].replace(["nan", "None", "", "NaN"], "Unknown")
 
-    # 🔥 FINAL DEBUG (THIS WILL PROVE FIX)
-    print("SRC SAMPLE:", out["src"].head(10))
+    print("✅ SRC SAMPLE:", out["src"].head(5))
 
-    # 🔥 FEATURES
+    # -------------------------------
+    # STEP 4: FEATURE MAPPING (STRICT)
+    # -------------------------------
     for col in MODEL_FEATURE_COLUMNS:
-        if col in df.columns:
-            out[col] = pd.to_numeric(df[col], errors="coerce")
-        else:
-            out[col] = 0
+        matched_col = None
 
-    # 🔥 CLEAN NUMERICS
+        for df_col in df.columns:
+            if col in df_col:
+                matched_col = df_col
+                break
+
+        if matched_col:
+            out[col] = pd.to_numeric(df[matched_col], errors="coerce")
+        else:
+            raise ValueError(f"❌ Missing required feature: {col}")
+
+    # -------------------------------
+    # STEP 5: CLEAN NUMERICS
+    # -------------------------------
     out.replace([np.inf, -np.inf], np.nan, inplace=True)
     out.fillna(0, inplace=True)
 
     if "duration" in out.columns:
         out["duration"] = out["duration"].clip(lower=0.001)
+
+    # -------------------------------
+    # STEP 6: FINAL VALIDATION
+    # -------------------------------
+    zero_ratio = (out[MODEL_FEATURE_COLUMNS] == 0).mean().mean()
+
+    print(f"📊 ZERO RATIO: {zero_ratio:.2f}")
+
+    if zero_ratio > 0.8:
+        raise ValueError("❌ Features mostly ZERO → incorrect mapping")
 
     return out[["src", "dst", "proto", *MODEL_FEATURE_COLUMNS]]
 
