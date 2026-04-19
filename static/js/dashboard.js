@@ -134,38 +134,45 @@
 
     if (typeof io !== "function") return;
 
-    const socket = io();
-    socket.on("packet", (payload) => {
-        const stats = payload.metrics || {};
-        const nextTotal = stats.total || 0;
-        const nextThreats = stats.threats || 0;
-        const nextNormal = stats.normal || 0;
+    async function fetchLiveData() {
+    try {
+        const res = await fetch("/api/live");
+        const payload = await res.json();
 
-        setText("total", nextTotal);
-        setText("anomalies", nextThreats);
-        setText("normal", nextNormal);
+        const stats = payload.metrics || {};
+        const data = payload.data || [];
+
+        setText("total", stats.total || 0);
+        setText("anomalies", stats.threats || 0);
+        setText("normal", stats.normal || 0);
         setText("top_ip", stats.top_ip || "-");
 
         renderAlerts(stats.alerts || []);
 
-        const timestamp = new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-        });
+        const timestamp = new Date().toLocaleTimeString();
 
         trafficChart.data.labels.push(timestamp);
-        trafficChart.data.datasets[0].data.push(nextTotal);
-        trafficChart.data.datasets[1].data.push(nextThreats);
+        trafficChart.data.datasets[0].data.push(stats.total || 0);
+        trafficChart.data.datasets[1].data.push(stats.threats || 0);
 
         if (trafficChart.data.labels.length > maxPoints) {
             trafficChart.data.labels.shift();
-            trafficChart.data.datasets.forEach((dataset) => dataset.data.shift());
+            trafficChart.data.datasets.forEach(d => d.data.shift());
         }
 
         trafficChart.update();
 
-        attackChart.data.datasets[0].data = [nextNormal, nextThreats];
+        attackChart.data.datasets[0].data = [
+            stats.normal || 0,
+            stats.threats || 0
+        ];
         attackChart.update();
-    });
+
+    } catch (err) {
+        console.error("Polling error:", err);
+    }
+}
+
+// 🔥 Run every 2 seconds
+setInterval(fetchLiveData, 2000);
 })();

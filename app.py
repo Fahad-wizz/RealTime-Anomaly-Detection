@@ -23,7 +23,8 @@ from model import FEATURE_COLUMNS, preprocess as preprocess_training_frame
 from sniffer import packet_queue, start_sniffing
 
 
-
+LIVE_DATA = []
+MAX_BUFFER = 50
 
 RAW_PACKET_COLUMNS = {"time", "source", "destination", "protocol", "length"}
 MODEL_FEATURE_COLUMNS = FEATURE_COLUMNS
@@ -42,7 +43,7 @@ UPLOAD_FOLDER.mkdir(exist_ok=True)
 
 active_clients = 0
 active_clients_lock = threading.Lock()
-ENABLE_SNIFFER = True
+ENABLE_SNIFFER = False
 stop_threads = False
 
 app = Flask(__name__)
@@ -441,38 +442,49 @@ def classify_live_flow(feature_row):
 
 @app.route("/api/ingest", methods=["POST"])
 def ingest_live_data():
-    try:
-        data = request.json  # incoming flow features
+    global LIVE_DATA
 
-        # 🔥 Convert to DataFrame
+    try:
+        # 🔥 1. Validate input
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No JSON data received"}), 400
+
+        # 🔥 2. Convert to DataFrame
         df = pd.DataFrame([data])
 
-        # 🔥 Align features (CRITICAL)
+        # 🔥 3. Align features (CRITICAL)
         df = df.reindex(columns=MODEL_FEATURE_COLUMNS, fill_value=0)
 
-        # 🔥 Run ML (reuse your function)
+        # 🔥 4. Run ML
         pred, attack_type, confidence = classify_live_flow(df.iloc[0].to_dict())
 
-        # 🔥 Update metrics (reuse existing system)
+        # 🔥 5. Update metrics
         metrics.update_metrics(data, pred, attack_type)
 
+        # 🔥 6. Log attacks
         if pred == -1:
             log_attack(data, attack_type)
 
-        # 🔥 Send to dashboard (SocketIO)
-        socketio.emit(
-            "packet",
-            {
-                "src": data.get("src"),
-                "dst": data.get("dst"),
-                "proto": data.get("proto"),
-                "anomaly": pred,
-                "attack_type": attack_type,
-                "confidence": confidence,
-                "metrics": metrics.get_metrics(),
-            },
-        )
+        # 🔥 7. Prepare result (FOR DASHBOARD)
+        result = {
+            "src": str(data.get("src", "N/A")),
+            "dst": str(data.get("dst", "N/A")),
+            "proto": str(data.get("proto", "Unknown")),
+            "attack_type": attack_type,
+            "anomaly": int(pred),
+            "confidence": float(confidence),
+            "timestamp": time.time()
+        }
 
+        # 🔥 8. Store in memory buffer
+        LIVE_DATA.append(result)
+
+        # keep only last 50 entries
+        if len(LIVE_DATA) > 50:
+            LIVE_DATA.pop(0)
+
+        # 🔥 9. Return response
         return jsonify({
             "status": "ok",
             "prediction": attack_type,
@@ -482,6 +494,13 @@ def ingest_live_data():
     except Exception as e:
         print("API ERROR:", e)
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/live")
+def get_live_data():
+    return jsonify({
+        "data": LIVE_DATA,
+        "metrics": metrics.get_metrics()
+    })
 
 @app.route("/")
 def home():
