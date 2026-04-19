@@ -66,33 +66,36 @@ def dos_attack(attack_id, target_ip, target_port, duration, rate):
 
 @app.route("/attack/start", methods=["POST"])
 def start_attack():
+    global active_attacks
+
+    attack_id = "dos"
     data = request.json
 
-    attack_id = str(uuid.uuid4())
+    # ❌ prevent multiple starts
+    if attack_id in active_attacks and active_attacks[attack_id]["running"]:
+        return jsonify({"status": "already running"})
 
     active_attacks[attack_id] = {
-        "type": data["type"],
         "running": True,
-        "packets_sent": 0,
-        "rate": data["rate"]
+        "packets_sent": 0
     }
 
-    thread = threading.Thread(
+    threading.Thread(
         target=dos_attack,
         args=(attack_id,
               data["ip"],
               int(data["port"]),
               int(data["duration"]),
-              int(data["rate"]))
-    )
-    thread.start()
+              int(data["rate"])),
+        daemon=True
+    ).start()
 
-    return jsonify({"attack_id": attack_id})
+    return jsonify({"status": "started"})
 
 
 @app.route("/attack/stop", methods=["POST"])
 def stop_attack():
-    attack_id = request.json["attack_id"]
+    attack_id = "dos"
 
     if attack_id in active_attacks:
         active_attacks[attack_id]["running"] = False
