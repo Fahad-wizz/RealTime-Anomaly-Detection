@@ -638,6 +638,10 @@ def dashboard():
 def upload():
     if request.method == "POST":
         file = request.files.get("file")
+
+        # -------------------------------
+        # VALIDATION
+        # -------------------------------
         if not file or not file.filename:
             return "No file", 400
 
@@ -645,28 +649,79 @@ def upload():
             return "Only CSV uploads are supported.", 400
 
         try:
+            # -------------------------------
+            # STEP 1: LOAD CSV
+            # -------------------------------
             uploaded_df = pd.read_csv(file)
+
+            print("\n📥 RAW CSV COLUMNS:", uploaded_df.columns.tolist())
+            print("📥 RAW SAMPLE:\n", uploaded_df.head(3))
+
+            # -------------------------------
+            # STEP 2: NORMALIZATION (SAFE)
+            # -------------------------------
             try:
                 feature_df = normalize_flow_dataframe(uploaded_df)
-            except:
+                print("✅ Used normalize_flow_dataframe()")
+            except Exception as e:
+                print("⚠️ normalize_flow_dataframe FAILED:", e)
+
                 feature_df = prepare_upload_features(uploaded_df)
+                print("✅ Used prepare_upload_features()")
+
+            # -------------------------------
+            # STEP 3: STRICT FEATURE CHECK
+            # -------------------------------
+            missing = [
+                col for col in MODEL_FEATURE_COLUMNS
+                if col not in feature_df.columns
+            ]
+
+            if missing:
+                raise ValueError(f"❌ Missing required features: {missing}")
+
+            # -------------------------------
+            # STEP 4: ZERO / NAN DETECTION
+            # -------------------------------
+            zero_ratio = (feature_df[MODEL_FEATURE_COLUMNS] == 0).mean().mean()
+            nan_ratio = feature_df[MODEL_FEATURE_COLUMNS].isna().mean().mean()
+
+            print(f"📊 ZERO RATIO: {zero_ratio:.2f}")
+            print(f"📊 NAN RATIO: {nan_ratio:.2f}")
+
+            if zero_ratio > 0.8:
+                raise ValueError("❌ Features are mostly ZERO → wrong mapping")
+
+            if nan_ratio > 0.3:
+                raise ValueError("❌ Too many NaN values → bad preprocessing")
+
+            print("📊 FINAL FEATURES SAMPLE:\n", feature_df.head(5))
+
+            # -------------------------------
+            # STEP 5: MODEL SCORING
+            # -------------------------------
             results_df = score_flows(feature_df)
 
-            print(feature_df.head())
-            print(feature_df.describe())
         except ValueError as exc:
-            return str(exc), 400
-        except Exception as exc:
-            return f"Failed to analyze the uploaded CSV: {exc}", 500
+            return f"DATA ERROR: {exc}", 400
 
+        except Exception as exc:
+            return f"SYSTEM ERROR: {exc}", 500
+
+        # -------------------------------
+        # STEP 6: SAVE RESULTS
+        # -------------------------------
         file_id = str(uuid.uuid4())
         output_path = result_path_for(file_id)
+
         results_df.to_csv(output_path, index=False)
         session["last_result_file_id"] = file_id
 
         return redirect(url_for("upload_results", file_id=file_id))
 
+    # GET request
     return render_template("upload.html")
+
 
 
 @app.route("/upload/results/<file_id>")
