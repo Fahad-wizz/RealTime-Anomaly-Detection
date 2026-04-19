@@ -443,8 +443,7 @@ def classify_live_flow(feature_row):
 
 @app.route("/api/ingest", methods=["POST"])
 def ingest_live_data():
-    global LIVE_DATA
-    
+    global LIVE_DATA, LAST_AGENT_TIME
 
     try:
         data = request.get_json()
@@ -452,47 +451,57 @@ def ingest_live_data():
         if not data:
             return jsonify({"error": "No data received"}), 400
 
-        # ✅ handle batch or single
+        # ✅ normalize input
         rows = data if isinstance(data, list) else [data]
-        global LAST_AGENT_TIME
-        LAST_AGENT_TIME = time.time()
+
+        processed = 0
 
         for row in rows:
-            df = pd.DataFrame([row])
-            df = df.reindex(columns=MODEL_FEATURE_COLUMNS, fill_value=0)
+            # 🔥 sanitize metadata (VERY IMPORTANT)
+            src = str(row.get("src", "N/A"))
+            dst = str(row.get("dst", "N/A"))
+            proto = str(row.get("proto", "Unknown"))
 
-            pred, attack_type, confidence = classify_live_flow(df.iloc[0].to_dict())
+            # 🔥 build feature input
+            feature_input = {k: row.get(k, 0) for k in MODEL_FEATURE_COLUMNS}
 
-            # ✅ FIXED metrics input
+            pred, attack_type, confidence = classify_live_flow(feature_input)
+
+            # ✅ update metrics
             metrics.update_metrics(
-                {
-                    "src": row.get("src"),
-                    "dst": row.get("dst"),
-                    "proto": row.get("proto")
-                },
+                {"src": src, "dst": dst, "proto": proto},
                 pred,
                 attack_type
             )
 
+            # ✅ log attacks
             if pred == -1:
                 log_attack(row, attack_type)
 
-            # ✅ store for dashboard
+            # ✅ store result
             LIVE_DATA.append({
-                "src": row.get("src"),
-                "dst": row.get("dst"),
-                "proto": row.get("proto"),
+                "src": src,
+                "dst": dst,
+                "proto": proto,
                 "attack_type": attack_type,
                 "confidence": float(confidence),
                 "anomaly": int(pred),
                 "timestamp": time.time()
             })
 
-        # ✅ prevent overflow
+            processed += 1
+
+        # 🔥 update heartbeat AFTER success
+        LAST_AGENT_TIME = time.time()
+
+        # ✅ prevent memory overflow
         if len(LIVE_DATA) > MAX_BUFFER:
             LIVE_DATA = LIVE_DATA[-MAX_BUFFER:]
 
-        return jsonify({"status": "ok", "processed": len(rows)})
+        return jsonify({
+            "status": "ok",
+            "processed": processed
+        })
 
     except Exception as e:
         print("API ERROR:", e)

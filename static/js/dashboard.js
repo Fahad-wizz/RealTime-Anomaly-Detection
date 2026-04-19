@@ -26,10 +26,10 @@
     if (!node) return;
 
     if (isActive) {
-        node.textContent = "🟢 Agent Active (Live Data)";
+        node.textContent = "Agent Active";
         node.style.color = "limegreen";
     } else {
-        node.textContent = "🔴 Agent Offline (Demo Mode)";
+        node.textContent = "Agent Offline";
         node.style.color = "red";
     }
 }
