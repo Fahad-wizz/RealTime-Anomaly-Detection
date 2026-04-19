@@ -389,9 +389,11 @@ def score_flows(feature_df):
     if results.empty:
         raise ValueError("The uploaded data did not produce any flows to score.")
 
-    model_input = results[MODEL_FEATURE_COLUMNS].copy()
+    model_input = results.reindex(columns=MODEL_FEATURE_COLUMNS, fill_value=0).copy()
     model_input = model_input.replace([np.inf, -np.inf], 0).fillna(0)
-    model_input = model_input.clip(lower=0, upper=1e6)
+
+# 🔥 MUCH SAFER RANGE
+    model_input = model_input.clip(lower=0, upper=1e5)
 
     anomaly_scaled = isolation_scaler.transform(model_input)
     anomaly_flags = isolation_model.predict(anomaly_scaled)
@@ -410,24 +412,32 @@ def score_flows(feature_df):
         classifier_confidences = [50.0] * len(results)
 
     scored_rows = []
+    print("📊 MODEL INPUT STATS:")
+    print(model_input.describe())
+
+    print("📊 ANOMALY FLAGS:", np.unique(anomaly_flags, return_counts=True))
+    print("📊 CLASSIFIER LABELS:", set(classifier_labels))
     for idx, row in results.iterrows():
         anomaly_flag = int(anomaly_flags[idx])
         classifier_label = str(classifier_labels[idx])
         clf_conf = classifier_confidences[idx]
         anom_conf = anomaly_conf[idx]
 
-        if classifier_label != "Normal":
+        # 🔥 HYBRID DECISION LOGIC (STABLE)
+        if classifier_label != "Normal" and clf_conf > 60:
             prediction = "ATTACK"
             attack_type = classifier_label
-            confidence = round(clf_conf * 0.95, 2)
-        elif anomaly_flag == -1:
+            confidence = round(clf_conf, 2)
+
+        elif anomaly_flag == -1 and anom_conf > 50:
             prediction = "ATTACK"
             attack_type = "Anomaly"
-            confidence = round(float(anom_conf), 2)
+            confidence = round(anom_conf, 2)
+
         else:
             prediction = "NORMAL"
             attack_type = "Normal"
-            confidence = round(clf_conf * 0.95, 2)
+            confidence = round(max(clf_conf, anom_conf), 2)
 
         scored_rows.append({
             "flow_id": row.get("flow_id", f"flow_{idx}"),
@@ -451,7 +461,8 @@ def classify_live_flow(feature_row):
     # 🔥 ALIGNMENT FIX
     feature_df = feature_df.reindex(columns=MODEL_FEATURE_COLUMNS, fill_value=0)
 
-    model_input = feature_df
+    model_input = feature_df.reindex(columns=MODEL_FEATURE_COLUMNS, fill_value=0)
+    model_input = model_input.clip(lower=0, upper=1e5)
 
     anomaly_scaled = isolation_scaler.transform(model_input)
     anomaly_flag = int(isolation_model.predict(anomaly_scaled)[0])
@@ -464,13 +475,13 @@ def classify_live_flow(feature_row):
         confidence = float(max(classifier.predict_proba(classifier_scaled)[0]) * 100)
 
     # 🔥 FIXED DECISION LOGIC
-    if classifier_label != "Normal":
+    if classifier_label != "Normal" and confidence > 60:
         return -1, classifier_label, round(confidence, 2)
 
     if anomaly_flag == -1:
         return -1, "Anomaly", 80.0
 
-    return 1, "Normal", 100.0
+    return 1, "Normal", round(confidence, 2)
 
 @app.route("/api/ingest", methods=["POST"])
 def ingest_live_data():
