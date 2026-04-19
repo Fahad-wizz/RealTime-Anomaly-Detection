@@ -711,7 +711,7 @@ def upload():
             if missing:
                 raise ValueError(f"❌ Missing required features: {missing}")
             
-            if not all(col in temp_df.columns for col in ["src", "dst", "proto"]):
+            if not all(col in feature_df.columns for col in ["src", "dst", "proto"]):
                 raise ValueError("Missing metadata → fallback required")
 
             # -------------------------------
