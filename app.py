@@ -22,6 +22,7 @@ import metrics
 from model import FEATURE_COLUMNS, preprocess as preprocess_training_frame
 from sniffer import packet_queue, start_sniffing
 
+AGENT_URL = None
 LAST_AGENT_TIME = 0
 AGENT_TIMEOUT = 5  # seconds
 LIVE_DATA = []
@@ -524,6 +525,17 @@ def ingest_live_data():
         print("API ERROR:", e)
         return jsonify({"error": str(e)}), 500
     
+@app.route("/agent/register", methods=["POST"])
+def register_agent():
+    global AGENT_URL
+
+    data = request.json
+    AGENT_URL = data.get("url")
+
+    print("🔥 Agent registered:", AGENT_URL)
+
+    return jsonify({"status": "registered"})
+
 @app.route("/api/live")
 def get_live_data():
     now = time.time()
@@ -800,25 +812,36 @@ def monitor():
 
 import requests
 
-NGROK_URL = "https://subwoofer-barman-anemia.ngrok-free.dev"
-
+def get_agent_url():
+    if not AGENT_URL:
+        raise Exception("Agent not connected")
+    return AGENT_URL
 
 @app.route("/attack/start", methods=["POST"])
 def start_attack():
-    res = requests.post(f"{NGROK_URL}/attack/start", json=request.json)
+    url = get_agent_url()
+    res = requests.post(f"{url}/attack/start", json=request.json)
     return res.json()
 
 
 @app.route("/attack/status/<attack_id>")
 def attack_status(attack_id):
-    res = requests.get(f"{NGROK_URL}/attack/status/{attack_id}")
+    url = get_agent_url()
+    res = requests.get(f"{url}/attack/status/{attack_id}")
     return res.json()
 
 
 @app.route("/attack/stop", methods=["POST"])
 def stop_attack():
-    res = requests.post(f"{NGROK_URL}/attack/stop", json=request.json)
+    url = get_agent_url()
+    res = requests.post(f"{url}/attack/stop", json=request.json)
     return res.json()
+
+@app.route("/agent/status")
+def agent_status():
+    return jsonify({
+        "connected": AGENT_URL is not None
+    })
 
 @app.route("/api/live-data")
 def live_data():

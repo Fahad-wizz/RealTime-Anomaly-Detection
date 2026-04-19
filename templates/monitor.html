@@ -2,89 +2,94 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container mt-4 monitor-container">
 
-    <h3 class="mb-3">🚨 Sentinel IDS Control Panel</h3>
+    <h3 class="mb-4">🚨 Sentinel IDS Control Panel</h3>
 
     <!-- ================= STATS ================= -->
     <div class="row mb-4">
 
         <div class="col-md-4">
-            <div class="card p-3 shadow">
-                <h6>Total Packets</h6>
-                <h3 id="totalPackets">0</h3>
+            <div class="monitor-card p-3">
+                <h6 class="stat-title">Total Packets</h6>
+                <h3 class="stat-value" id="totalPackets">0</h3>
             </div>
         </div>
 
         <div class="col-md-4">
-            <div class="card p-3 shadow">
-                <h6>Attacks Detected</h6>
-                <h3 id="attackCount">0</h3>
+            <div class="monitor-card p-3">
+                <h6 class="stat-title">Attacks Detected</h6>
+                <h3 class="stat-value" id="attackCount">0</h3>
             </div>
         </div>
 
         <div class="col-md-4">
-            <div class="card p-3 shadow">
-                <h6>Normal Traffic</h6>
-                <h3 id="normalCount">0</h3>
+            <div class="monitor-card p-3">
+                <h6 class="stat-title">Normal Traffic</h6>
+                <h3 class="stat-value" id="normalCount">0</h3>
             </div>
         </div>
 
     </div>
 
     <!-- ================= ATTACK CONTROL ================= -->
-    <div class="card shadow mb-4">
-        <div class="card-header">
+    <div class="monitor-card mb-4">
+        <div class="card-header border-0">
             ⚔️ Attack Simulation Control
         </div>
 
         <div class="card-body">
 
-            <div class="row">
+            <div class="row g-3">
 
                 <div class="col-md-3">
-                    <label>Target IP / Domain</label>
-                    <input type="text" id="targetIp" class="form-control" placeholder="your-render-url">
+                    <label class="form-label">Target IP / Domain</label>
+                    <input type="text" id="targetIp" class="monitor-input w-100" placeholder="your-render-url">
                 </div>
 
                 <div class="col-md-2">
-                    <label>Port</label>
-                    <input type="number" id="targetPort" class="form-control" value="80">
+                    <label class="form-label">Port</label>
+                    <input type="number" id="targetPort" class="monitor-input w-100" value="80">
                 </div>
 
                 <div class="col-md-2">
-                    <label>Duration (sec)</label>
-                    <input type="number" id="duration" class="form-control" value="10">
+                    <label class="form-label">Duration (sec)</label>
+                    <input type="number" id="duration" class="monitor-input w-100" value="10">
                 </div>
 
                 <div class="col-md-2">
-                    <label>Rate (pps)</label>
-                    <input type="number" id="rate" class="form-control" value="100">
+                    <label class="form-label">Rate (pps)</label>
+                    <input type="number" id="rate" class="monitor-input w-100" value="100">
                 </div>
 
-                <div class="col-md-3 d-flex align-items-end">
-                    <button class="btn btn-danger w-100 me-2" onclick="startAttack()">Start</button>
-                    <button class="btn btn-secondary w-100" onclick="stopAttack()">Stop</button>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button class="btn btn-attack w-100" onclick="startAttack()">Start</button>
+                    <button class="btn btn-stop w-100" onclick="stopAttack()">Stop</button>
                 </div>
 
             </div>
 
-            <hr>
+            <hr style="border-color: rgba(0,255,200,0.1);">
 
-            <p><strong>Status:</strong> <span id="attackStatus">Idle</span></p>
-            <p><strong>Packets Sent:</strong> <span id="packetsSent">0</span></p>
+            <p><strong>Status:</strong> 
+                <span id="attackStatus" class="status-text">Idle</span>
+            </p>
+
+            <p><strong>Packets Sent:</strong> 
+                <span id="packetsSent">0</span>
+            </p>
 
         </div>
     </div>
 
     <!-- ================= LIVE TABLE ================= -->
-    <div class="card shadow">
-        <div class="card-header">
+    <div class="monitor-card">
+        <div class="card-header border-0">
             Live Traffic Feed
         </div>
 
         <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-            <table class="table table-dark table-striped">
+            <table class="table monitor-table table-striped">
                 <thead>
                     <tr>
                         <th>Time</th>
@@ -102,8 +107,6 @@
 
 </div>
 
-<!-- SOCKET -->
-<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 <script src="/static/js/monitor.js"></script>
 
 {% endblock %}

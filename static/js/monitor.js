@@ -68,7 +68,7 @@ function addRow(data) {
         <td>${new Date(data.timestamp * 1000).toLocaleTimeString()}</td>
         <td>${data.src}</td>
         <td>
-            <span class="badge ${data.prediction === "ATTACK" ? "bg-danger" : "bg-success"}">
+            <span class="badge ${data.prediction === "ATTACK" ? "badge-attack" : "badge-normal"}">
                 ${data.prediction}
             </span>
         </td>
@@ -206,6 +206,15 @@ function autoBoost() {
 
     startAttack();
 }
+async function checkAgent() {
+    const res = await fetch("/agent/status");
+    const data = await res.json();
+
+    document.getElementById("attackStatus").innerText =
+        data.connected ? "Agent Connected ✅" : "Agent Not Connected ❌";
+}
+
+setInterval(checkAgent, 3000);
 
 
 // ================= INIT =================

