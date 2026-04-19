@@ -376,6 +376,19 @@ def prepare_upload_features(df):
 
     # CICIDS flow mode
     flow_df = map_cicids_to_model_features(normalized)
+    # 🔥 MATCH TRAINING PIPELINE EXACTLY
+
+    # Convert duration (microseconds → seconds)
+    if "duration" in flow_df.columns:
+        flow_df["duration"] = flow_df["duration"] / 1e6
+        flow_df["duration"] = flow_df["duration"].clip(lower=0.001)
+
+    # Clip rates (same as training)
+    if "packet_rate" in flow_df.columns:
+        flow_df["packet_rate"] = flow_df["packet_rate"].clip(upper=1e6)
+
+    if "byte_rate" in flow_df.columns:
+        flow_df["byte_rate"] = flow_df["byte_rate"].clip(upper=1e8)
 
     if flow_df.empty:
         raise ValueError("The uploaded flow data is empty after preprocessing.")
