@@ -454,10 +454,11 @@ def classify_live_flow(feature_row):
     if classifier_label != "Normal" and confidence > 60:
         return -1, classifier_label, round(confidence, 2)
 
-    if anomaly_flag == -1:
-        return -1, "Anomaly", 80.0
-
-    return 1, "Normal", round(confidence, 2)
+    packet_count = feature_row.get("packet_count", 0)
+    if anomaly_flag == -1 and packet_count > 40:
+        return -1, "Attack", confidence
+    else:
+        return 1, "Normal", confidence
 
 @app.route("/api/ingest", methods=["POST"])
 def ingest_live_data():

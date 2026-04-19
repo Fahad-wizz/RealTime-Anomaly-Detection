@@ -22,7 +22,12 @@ flows = defaultdict(_new_flow)
 
 
 def get_flow_key(pkt):
-    return (pkt.get("src"), pkt.get("dst"), pkt.get("proto"))
+    return (
+        pkt.get("src"),
+        pkt.get("dst"),
+        pkt.get("proto"),
+        pkt.get("dport"),   # 🔥 add this back
+    )
 
 
 def update_flow(pkt):
