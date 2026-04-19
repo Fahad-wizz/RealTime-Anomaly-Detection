@@ -12,14 +12,14 @@
   <br>
 
   <!-- GitHub Badges -->
-  <img src="https://img.shields.io/github/stars/your-username/sentinel-ids?style=social" />
-  <img src="https://img.shields.io/github/forks/your-username/sentinel-ids?style=social" />
-  <img src="https://img.shields.io/github/license/your-username/sentinel-ids" />
+  <img src="https://img.shields.io/github/stars/Fahad-wizz/sentinel-ids?style=social" />
+  <img src="https://img.shields.io/github/forks/Fahad-wizz/sentinel-ids?style=social" />
+  <img src="https://img.shields.io/github/license/Fahad-wizz/sentinel-ids" />
 
   <br>
 
   <!-- Visitor Counter -->
-  <img src="https://komarev.com/ghpvc/?username=your-username&repo=sentinel-ids&color=blue" />
+  <img src="https://komarev.com/ghpvc/?username=Fahad-wizz&repo=sentinel-ids&color=blue" />
 
 </p>
 
