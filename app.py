@@ -380,7 +380,6 @@ def prepare_upload_features(df):
 
     # Convert duration (microseconds → seconds)
     if "duration" in flow_df.columns:
-        flow_df["duration"] = flow_df["duration"] / 1e6
         flow_df["duration"] = flow_df["duration"].clip(lower=0.001)
 
     # Clip rates (same as training)
@@ -406,7 +405,7 @@ def score_flows(feature_df):
     model_input = model_input.replace([np.inf, -np.inf], 0).fillna(0)
 
 # 🔥 MUCH SAFER RANGE
-    model_input = model_input.clip(0, 1e5)
+    model_input = model_input.clip(0, 1e4)
 
     anomaly_scaled = isolation_scaler.transform(model_input)
     anomaly_flags = isolation_model.predict(anomaly_scaled)
