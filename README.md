@@ -19,3 +19,11 @@ A Flask-based web application that detects network intrusions using Machine Lear
 ```bash
 pip install -r requirements.txt
 python app.py
+
+🌐 Live Demo
+
+(Your Render link here)
+
+📌 Author
+
+Your Name
