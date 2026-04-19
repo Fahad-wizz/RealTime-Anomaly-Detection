@@ -1,4 +1,9 @@
 (() => {
+    let lastTotal = 0;
+    let lastThreats = 0;
+
+    let lastTrafficValue = 0;
+    let lastThreatValue = 0;
     const metricsNode = document.getElementById("dashboardMetrics");
     const trafficCanvas = document.getElementById("trafficChart");
     const attackCanvas = document.getElementById("attackChart");
@@ -67,7 +72,10 @@
                     borderColor: colors.accentStrong,
                     backgroundColor: "rgba(14, 165, 233, 0.16)",
                     fill: true,
-                    tension: 0.35,
+                    tension: 0.45,
+                    spanGaps: true,
+                    pointRadius: 2,
+                    pointHoverRadius: 5
                 },
                 {
                     label: "Threats",
@@ -75,7 +83,10 @@
                     borderColor: colors.danger,
                     backgroundColor: "rgba(251, 113, 133, 0.14)",
                     fill: true,
-                    tension: 0.35,
+                    tension: 0.45,
+                    spanGaps: true,
+                    pointRadius: 2,
+                    pointHoverRadius: 5
                 },
             ],
         },
@@ -148,8 +159,6 @@
 
     // if (typeof io !== "function") return;
 
-    let lastTotal = 0;
-    let lastThreats = 0;
     async function fetchLiveData() {
     try {
         const res = await fetch("/api/live");
@@ -171,28 +180,30 @@
         const currentTotal = stats.total || 0;
         const currentThreats = stats.threats || 0;
 
-        // 🔥 calculate live rate (delta)
-        const deltaTotal = currentTotal - lastTotal;
-        const deltaThreats = currentThreats - lastThreats;
+        // 🔥 calculate flow rate (delta)
+        let deltaTotal = currentTotal - lastTotal;
+        let deltaThreats = currentThreats - lastThreats;
 
-        // update previous values
+        // 🔥 fallback if no new data (prevents gaps)
+        if (deltaTotal <= 0) deltaTotal = lastTrafficValue;
+        if (deltaThreats <= 0) deltaThreats = lastThreatValue;
+
+        // 🔥 smooth values (optional but powerful)
+        const smooth = (val, prev) => prev * 0.7 + val * 0.3;
+
+        deltaTotal = smooth(deltaTotal, lastTrafficValue);
+        deltaThreats = smooth(deltaThreats, lastThreatValue);
+
+        // store last values
+        lastTrafficValue = deltaTotal;
+        lastThreatValue = deltaThreats;
+
         lastTotal = currentTotal;
         lastThreats = currentThreats;
 
-        // avoid negative glitches
-        const safeTotal = Math.max(deltaTotal, 0);
-        const safeThreats = Math.max(deltaThreats, 0);
-
-        let prev = 0;
-
-        function smooth(val) {
-            const smoothed = prev * 0.7 + val * 0.3;
-            prev = smoothed;
-            return smoothed;
-        }
-
-        trafficChart.data.datasets[0].data.push(smooth(safeTotal));
-        trafficChart.data.datasets[1].data.push(safeThreats);
+        // push to chart
+        trafficChart.data.datasets[0].data.push(deltaTotal);
+        trafficChart.data.datasets[1].data.push(deltaThreats);
 
         if (trafficChart.data.labels.length > maxPoints) {
             trafficChart.data.labels.shift();
