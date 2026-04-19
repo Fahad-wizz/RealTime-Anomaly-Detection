@@ -56,6 +56,6 @@ while True:
         last_send_time = now
 
     # cleanup
-    flow_features.flows.pop(key, None)
+    #flow_features.flows.pop(key, None)
 
     #time.sleep(0.01)  # small throttle
