@@ -12,9 +12,9 @@
   <br>
 
   <!-- GitHub Badges -->
-  <img src="https://img.shields.io/github/stars/Fahad-wizz/sentinel-ids?style=social" />
-  <img src="https://img.shields.io/github/forks/Fahad-wizz/sentinel-ids?style=social" />
-  <img src="https://img.shields.io/github/license/Fahad-wizz/sentinel-ids" />
+  <img src="https://img.shields.io/github/stars/Fahad-wizz/RealTime-Anomaly-Detection?style=social" />
+  <img src="https://img.shields.io/github/forks/Fahad-wizz/RealTime-Anomaly-Detection?style=social" />
+  <img src="https://img.shields.io/github/license/Fahad-wizz/RealTime-Anomaly-Detection" />
 
   <br>
 
