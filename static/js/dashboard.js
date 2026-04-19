@@ -148,6 +148,8 @@
 
     // if (typeof io !== "function") return;
 
+    let lastTotal = 0;
+    let lastThreats = 0;
     async function fetchLiveData() {
     try {
         const res = await fetch("/api/live");
@@ -166,8 +168,31 @@
         const timestamp = new Date().toLocaleTimeString();
 
         trafficChart.data.labels.push(timestamp);
-        trafficChart.data.datasets[0].data.push(stats.total || 0);
-        trafficChart.data.datasets[1].data.push(stats.threats || 0);
+        const currentTotal = stats.total || 0;
+        const currentThreats = stats.threats || 0;
+
+        // 🔥 calculate live rate (delta)
+        const deltaTotal = currentTotal - lastTotal;
+        const deltaThreats = currentThreats - lastThreats;
+
+        // update previous values
+        lastTotal = currentTotal;
+        lastThreats = currentThreats;
+
+        // avoid negative glitches
+        const safeTotal = Math.max(deltaTotal, 0);
+        const safeThreats = Math.max(deltaThreats, 0);
+
+        let prev = 0;
+
+        function smooth(val) {
+            const smoothed = prev * 0.7 + val * 0.3;
+            prev = smoothed;
+            return smoothed;
+        }
+
+        trafficChart.data.datasets[0].data.push(smooth(safeTotal));
+        trafficChart.data.datasets[1].data.push(safeThreats);
 
         if (trafficChart.data.labels.length > maxPoints) {
             trafficChart.data.labels.shift();

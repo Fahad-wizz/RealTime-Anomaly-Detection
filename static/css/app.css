@@ -850,6 +850,10 @@ html[data-theme="light"] .signal-card {
     border-color: rgba(52, 211, 153, 0.26);
     background: rgba(52, 211, 153, 0.08);
 }
+.live-default-pill {
+    border-color: rgba(211, 52, 52, 0.26);
+    background: rgba(211, 52, 52, 0.08);
+}
 
 .chart-box {
     position: relative;
