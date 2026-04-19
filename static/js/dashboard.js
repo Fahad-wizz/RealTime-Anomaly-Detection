@@ -146,7 +146,7 @@
 
     renderAlerts(initialMetrics.alerts || []);
 
-    if (typeof io !== "function") return;
+    // if (typeof io !== "function") return;
 
     async function fetchLiveData() {
     try {
@@ -189,5 +189,5 @@
 }
 
 // 🔥 Run every 2 seconds
-setInterval(fetchLiveData, 500);
+setInterval(fetchLiveData, 1000);
 })();
