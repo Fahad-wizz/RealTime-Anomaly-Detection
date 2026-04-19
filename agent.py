@@ -18,16 +18,33 @@ print("🚀 Starting agent...")
 # ================= START SNIFFER =================
 threading.Thread(target=start_sniffing, daemon=True).start()
 
+# ================= HEARTBEAT =================
 def heartbeat():
     while True:
-        try:
-            requests.post(SERVER_URL, json={"heartbeat": True}, timeout=2)
-        except:
-            pass
+        success = False
+
+        for _ in range(3):  # 🔥 retry burst (handles Render sleep)
+            try:
+                res = requests.post(
+                    SERVER_URL,
+                    json={"heartbeat": True},
+                    timeout=3
+                )
+                print("💓 Heartbeat →", res.status_code)
+                success = True
+                break
+            except Exception as e:
+                print("⚠️ Retry heartbeat...", e)
+                time.sleep(1)
+
+        if not success:
+            print("❌ Heartbeat failed completely")
+
         time.sleep(2)
 
-# start it
+# start heartbeat thread
 threading.Thread(target=heartbeat, daemon=True).start()
+
 # ================= SEND FUNCTION =================
 def send_batch(batch_data):
     for attempt in range(3):
@@ -49,14 +66,16 @@ while True:
 
     packet_count = flow.get("packet_count", 0)
     duration = max(flow["last"] - flow["start"], 0.001)
-    # 🔥 DEBUG: Flow growth
-    print(f"📈 Flow [{key}] packets = {packet_count}")
 
-    # ================= FLOW TRIGGER =================
-    # Only process when flow is meaningful
-    if packet_count < 30:
+    # 🔥 DEBUG
+    print(f"📈 Flow [{key}] packets = {packet_count}, duration={round(duration, 3)}")
+
+    # ================= FLOW FILTER =================
+    # Balanced (keeps system alive + avoids noise)
+    if packet_count < 20:
         continue
-    if duration < 0.5: 
+
+    if duration < 0.2:
         continue
 
     # ================= FEATURE EXTRACTION =================
@@ -74,13 +93,12 @@ while True:
     now = time.time()
 
     # ================= BATCH SEND =================
-    if len(batch) >= BATCH_SIZE or (now - last_send_time) >= BATCH_TIMEOUT:
+    if batch and (len(batch) >= BATCH_SIZE or (now - last_send_time) >= BATCH_TIMEOUT):
         send_batch(batch)
         batch.clear()
         last_send_time = now
 
     # ================= SAFE CLEANUP =================
-    # Instead of deleting immediately, only clear VERY large flows
     if packet_count > 200:
         flow_features.flows.pop(key, None)
         print(f"🧹 Flow {key} cleared after large accumulation")
