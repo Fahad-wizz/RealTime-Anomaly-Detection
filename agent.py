@@ -48,7 +48,7 @@ while True:
     key, flow = flow_features.update_flow(data)
 
     packet_count = flow.get("packet_count", 0)
-    duration = flow.get("duration", 0)
+    duration = max(flow["last"] - flow["start"], 0.001)
     # 🔥 DEBUG: Flow growth
     print(f"📈 Flow [{key}] packets = {packet_count}")
 
