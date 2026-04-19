@@ -237,7 +237,7 @@ RealTime-Anomaly-Detection/
 ```
 
 ---
-##🔐 Real-World Applications
+## 🔐 Real-World Applications
 
 - Industrial IoT Security  
 - Smart City Monitoring  
