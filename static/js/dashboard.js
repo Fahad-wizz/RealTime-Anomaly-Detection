@@ -174,5 +174,5 @@
 }
 
 // 🔥 Run every 2 seconds
-setInterval(fetchLiveData, 2000);
+setInterval(fetchLiveData, 500);
 })();
