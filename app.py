@@ -15,6 +15,7 @@ import pandas as pd
 from flask import Flask, redirect, render_template, request, send_file, session, url_for
 from flask_socketio import SocketIO
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask import jsonify
 
 import flow_features
 import metrics
@@ -437,6 +438,50 @@ def classify_live_flow(feature_row):
         return -1, "Anomaly", 80.0
 
     return 1, "Normal", 100.0
+
+@app.route("/api/ingest", methods=["POST"])
+def ingest_live_data():
+    try:
+        data = request.json  # incoming flow features
+
+        # 🔥 Convert to DataFrame
+        df = pd.DataFrame([data])
+
+        # 🔥 Align features (CRITICAL)
+        df = df.reindex(columns=MODEL_FEATURE_COLUMNS, fill_value=0)
+
+        # 🔥 Run ML (reuse your function)
+        pred, attack_type, confidence = classify_live_flow(df.iloc[0].to_dict())
+
+        # 🔥 Update metrics (reuse existing system)
+        metrics.update_metrics(data, pred, attack_type)
+
+        if pred == -1:
+            log_attack(data, attack_type)
+
+        # 🔥 Send to dashboard (SocketIO)
+        socketio.emit(
+            "packet",
+            {
+                "src": data.get("src"),
+                "dst": data.get("dst"),
+                "proto": data.get("proto"),
+                "anomaly": pred,
+                "attack_type": attack_type,
+                "confidence": confidence,
+                "metrics": metrics.get_metrics(),
+            },
+        )
+
+        return jsonify({
+            "status": "ok",
+            "prediction": attack_type,
+            "confidence": confidence
+        })
+
+    except Exception as e:
+        print("API ERROR:", e)
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/")
 def home():
