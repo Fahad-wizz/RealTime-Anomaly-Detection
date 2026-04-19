@@ -67,8 +67,8 @@ Most student IDS projects:
 
 ## 🎯 Live Demo
 
-🌐 API: `https://realtime-anomaly-detection.onrender.com/`  
-📊 Dashboard: `http://127.0.0.1:5000`  
+🌐 API: https://realtime-anomaly-detection.onrender.com/  
+📊 Dashboard: http://127.0.0.1:5000  
 
 ---
 
@@ -83,33 +83,28 @@ Most student IDS projects:
 
 ---
 
-## 🎥 Demo (Add This for Maximum Impact)
-
-![Demo](https://via.placeholder.com/900x400?text=Add+Your+Real+GIF+Here)
-
-> 💡 Record using: OBS Studio / ScreenToGif  
-> This alone can 2x your chances in interviews
-
----
-
 ## 📸 Real Screenshots
 
 ### Dashboard
-![Dashboard](https://via.placeholder.com/900x400?text=Real+Dashboard)
+![Dashboard](<img width="1920" height="853" alt="Screenshot (260)" src="https://github.com/user-attachments/assets/a320910d-549f-4901-ad4d-69dd75b0074b" />
+)
 
 ### Detection Output
-![Detection](https://via.placeholder.com/900x400?text=Real+Detection)
+![Detection](<img width="1920" height="863" alt="Screenshot (263)" src="https://github.com/user-attachments/assets/eb2055fd-408b-4a5f-b54e-70d4843110d8" />
+)
 
 ---
 
 ## 🧠 System Architecture
 
+```mermaid
 flowchart LR
     A[Packet Sniffer] --> B[Feature Extraction]
     B --> C[Preprocessing]
     C --> D[Cloud ML Model]
     D --> E[API Service]
     E --> F[Dashboard]
+```
 
 ## 🔥 Core Capabilities
 **Real-time traffic capture**
@@ -150,17 +145,18 @@ This system uses a **Hybrid Anomaly Detection Pipeline** combining:
 
 ## 🧪 ML Pipeline (Production Ready)
 
-**Raw Packets** 
+```**Raw Packets** 
 ↓  
-**Flow Feature Engineering**  
+Flow Feature Engineering 
 ↓  
-**StandardScaler (trained)** 
+StandardScaler (trained)
 ↓  
-**Isolation Forest**  
+Isolation Forest  
 ↓  
-**Classifier**  
+Classifier
 ↓  
-**Confidence Score**  
+Confidence Score
+```
 
 ---
 
