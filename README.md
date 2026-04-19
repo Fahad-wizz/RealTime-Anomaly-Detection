@@ -19,7 +19,7 @@
   <br>
 
   <!-- Visitor Counter -->
-  <img src="https://komarev.com/ghpvc/?username=Fahad-wizz&repo=sentinel-ids&color=blue" />
+  <img src="https://komarev.com/ghpvc/?username=Fahad-wizz&repo=RealTime-Anomaly-Detection&color=blue" />
 
 </p>
 
