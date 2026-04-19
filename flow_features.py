@@ -1,7 +1,7 @@
 from collections import defaultdict
 import time
 
-FLOW_TIMEOUT = 5
+FLOW_TIMEOUT = 3
 MIN_PACKETS_FOR_CLASSIFICATION = 5
 
 
@@ -33,6 +33,13 @@ def get_flow_key(pkt):
 def update_flow(pkt):
     key = get_flow_key(pkt)
     flow = flows[key]
+
+    now = time.time()
+
+    # 🔥 RESET FLOW IF TOO OLD
+    if (now - flow["last"]) > FLOW_TIMEOUT:
+        flows[key] = _new_flow()
+        flow = flows[key]
 
     pkt_time = float(pkt.get("timestamp", time.time()))
     pkt_len = float(pkt.get("length", 0) or 0)

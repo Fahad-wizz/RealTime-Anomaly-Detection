@@ -16,7 +16,7 @@ RENDER_URL = "https://realtime-anomaly-detection.onrender.com"
 
 def register_with_server(ngrok_url):
     try:
-        requests.post(f"{RENDER_URL}/agent/register", json={
+        requests.post(f"{RENDER_URL}/register-monitor-agent", json={
             "url": ngrok_url
         })
         print("✅ Registered with server:", ngrok_url)
@@ -59,7 +59,19 @@ def dos_attack(attack_id, target_ip, target_port, duration, rate):
 
     active_attacks[attack_id]["running"] = False
 
+def heartbeat():
+    while True:
+        try:
+            requests.post(
+                "https://realtime-anomaly-detection.onrender.com/monitor-heartbeat",
+                timeout=2
+            )
+        except:
+            pass
+        time.sleep(2)
 
+# start it
+threading.Thread(target=heartbeat, daemon=True).start()
 # -------------------------------
 # API ROUTES
 # -------------------------------

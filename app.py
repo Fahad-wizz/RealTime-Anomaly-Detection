@@ -27,6 +27,9 @@ LAST_AGENT_TIME = 0
 AGENT_TIMEOUT = 5  # seconds
 LIVE_DATA = []
 MAX_BUFFER = 100
+MONITOR_AGENT_URL = None
+LAST_MONITOR_PING = 0
+MONITOR_TIMEOUT = 5   # seconds
 
 RAW_PACKET_COLUMNS = {"time", "source", "destination", "protocol", "length"}
 MODEL_FEATURE_COLUMNS = FEATURE_COLUMNS
@@ -526,14 +529,12 @@ def ingest_live_data():
         print("API ERROR:", e)
         return jsonify({"error": str(e)}), 500
     
-@app.route("/agent/register", methods=["POST"])
-def register_agent():
-    global AGENT_URL
+@app.route("/register-monitor-agent", methods=["POST"])
+def register_monitor_agent():
+    global MONITOR_AGENT_URL, LAST_MONITOR_PING
 
-    data = request.json
-    AGENT_URL = data.get("url")
-
-    print("🔥 Agent registered:", AGENT_URL)
+    MONITOR_AGENT_URL = request.json.get("url")
+    LAST_MONITOR_PING = time.time()
 
     return jsonify({"status": "registered"})
 
@@ -841,7 +842,7 @@ def stop_attack():
 @app.route("/agent/status")
 def agent_status():
     return jsonify({
-        "connected": AGENT_URL is not None
+        "connected": (time.time() - LAST_MONITOR_PING) < MONITOR_TIMEOUT
     })
 
 @app.route("/api/live-data")
