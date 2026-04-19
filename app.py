@@ -389,11 +389,11 @@ def score_flows(feature_df):
     if results.empty:
         raise ValueError("The uploaded data did not produce any flows to score.")
 
-    model_input = results.reindex(columns=MODEL_FEATURE_COLUMNS, fill_value=0).copy()
+    model_input = results.reindex(columns=MODEL_FEATURE_COLUMNS, fill_value=0)
     model_input = model_input.replace([np.inf, -np.inf], 0).fillna(0)
 
 # 🔥 MUCH SAFER RANGE
-    model_input = model_input.clip(lower=0, upper=1e5)
+    model_input = model_input.clip(0, 1e5)
 
     anomaly_scaled = isolation_scaler.transform(model_input)
     anomaly_flags = isolation_model.predict(anomaly_scaled)
@@ -702,14 +702,10 @@ def upload():
             # -------------------------------
             # STEP 2: NORMALIZATION (SAFE)
             # -------------------------------
-            try:
-                feature_df = normalize_flow_dataframe(uploaded_df)
-                print("✅ Used normalize_flow_dataframe()")
-            except Exception as e:
-                print("⚠️ normalize_flow_dataframe FAILED:", e)
+            # 🔥 FORCE SAME PIPELINE AS LOCAL (CRITICAL)
+            feature_df = prepare_upload_features(uploaded_df)
+            print("✅ Using prepare_upload_features (production stable)")
 
-                feature_df = prepare_upload_features(uploaded_df)
-                print("✅ Used prepare_upload_features()")
 
             # -------------------------------
             # STEP 3: STRICT FEATURE CHECK
