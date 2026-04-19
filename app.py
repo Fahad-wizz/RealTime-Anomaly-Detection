@@ -651,6 +651,9 @@ def upload():
             except:
                 feature_df = prepare_upload_features(uploaded_df)
             results_df = score_flows(feature_df)
+
+            print(feature_df.head())
+            print(feature_df.describe())
         except ValueError as exc:
             return str(exc), 400
         except Exception as exc:
