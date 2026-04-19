@@ -34,10 +34,10 @@ def update_flow(pkt):
     key = get_flow_key(pkt)
     flow = flows[key]
 
-    now = time.time()
+    pkt_time = float(pkt.get("timestamp", time.time()))
 
     # 🔥 RESET FLOW IF TOO OLD
-    if (now - flow["last"]) > FLOW_TIMEOUT:
+    if (pkt_time - flow["last"]) > FLOW_TIMEOUT:
         flows[key] = _new_flow()
         flow = flows[key]
 
