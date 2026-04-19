@@ -111,16 +111,56 @@ flowchart LR
     D --> E[API Service]
     E --> F[Dashboard]
 
-🔥 Core Capabilities
-Real-time traffic capture
-Flow-based feature engineering
-Hybrid ML anomaly detection
-Cloud inference API
-Live visualization dashboard
-Custom anomaly packet simulation
+## 🔥 Core Capabilities
+## Real-time traffic capture
+## Flow-based feature engineering
+## Hybrid ML anomaly detection
+## Cloud inference API
+## Live visualization dashboard
+## Custom anomaly packet simulation
 
 
 ---
+## 🧠 Model Architecture (Core Intelligence)
+
+This system uses a **Hybrid Anomaly Detection Pipeline** combining:
+
+### 🔹 1. Isolation Forest (Primary Detector)
+- Unsupervised anomaly detection model  
+- Learns patterns of *normal network behavior*  
+- Flags outliers based on isolation depth  
+
+**Why used?**
+- Works well with unknown attack patterns  
+- No need for fully labeled data  
+- Efficient for real-time inference  
+
+---
+
+### 🔹 2. Supervised Classifier (Decision Layer)
+- Takes anomaly scores + processed features  
+- Produces final classification (Normal / Attack)  
+- Improves precision and reduces false positives  
+
+**Why added?**
+- Isolation Forest alone → high false positives  
+- Classifier refines decision boundaries  
+
+---
+
+### 🔗 Combined Workflow
+
+Network Traffic
+      ↓
+Feature Engineering
+      ↓
+StandardScaler
+      ↓
+Isolation Forest (Anomaly Score)
+      ↓
+Classifier (Final Decision)
+      ↓
+Confidence Score 
 
 ## 🧪 ML Pipeline (Production Ready)
 
@@ -188,10 +228,10 @@ Confidence Score
 ---
 
 ## 🚀 Setup
-git clone https://github.com/Fahad-wizz/RealTime-Anomaly-Detection.git
-cd RealTime-Anomaly-Detection
-pip install -r requirements.txt
-python app.py
+1. git clone https://github.com/Fahad-wizz/RealTime-Anomaly-Detection.git
+2. cd RealTime-Anomaly-Detection
+3. pip install -r requirements.txt
+4. python app.py
 
 📂 Structure
 RealTime-Anomaly-Detection/
@@ -237,8 +277,6 @@ This project demonstrates:
 - Streaming via Kafka  
 - Deep learning (LSTM)  
 - Explainable AI (XAI)  
-
-
 ---
 
 ## 👨‍💻 Author
