@@ -646,7 +646,10 @@ def upload():
 
         try:
             uploaded_df = pd.read_csv(file)
-            feature_df = prepare_upload_features(uploaded_df)
+            try:
+                feature_df = normalize_flow_dataframe(uploaded_df)
+            except:
+                feature_df = prepare_upload_features(uploaded_df)
             results_df = score_flows(feature_df)
         except ValueError as exc:
             return str(exc), 400
