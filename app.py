@@ -22,7 +22,8 @@ import metrics
 from model import FEATURE_COLUMNS, preprocess as preprocess_training_frame
 from sniffer import packet_queue, start_sniffing
 
-
+LAST_AGENT_TIME = 0
+AGENT_TIMEOUT = 5  # seconds
 LIVE_DATA = []
 MAX_BUFFER = 100
 
@@ -443,6 +444,7 @@ def classify_live_flow(feature_row):
 @app.route("/api/ingest", methods=["POST"])
 def ingest_live_data():
     global LIVE_DATA
+    
 
     try:
         data = request.get_json()
@@ -452,6 +454,8 @@ def ingest_live_data():
 
         # ✅ handle batch or single
         rows = data if isinstance(data, list) else [data]
+        global LAST_AGENT_TIME
+        LAST_AGENT_TIME = time.time()
 
         for row in rows:
             df = pd.DataFrame([row])
@@ -496,9 +500,34 @@ def ingest_live_data():
     
 @app.route("/api/live")
 def get_live_data():
+    global LAST_AGENT_TIME
+
+    now = time.time()
+    agent_active = (now - LAST_AGENT_TIME) < AGENT_TIMEOUT
+
+    # 🔥 AUTO DEMO MODE
+    if not agent_active:
+        import random
+
+        fake = {
+            "src": f"192.168.1.{random.randint(1,255)}",
+            "dst": "8.8.8.8",
+            "proto": "TCP",
+            "attack_type": random.choice(["Normal", "DoS", "PortScan"]),
+            "confidence": random.randint(60, 100),
+            "anomaly": random.choice([1, -1]),
+            "timestamp": time.time()
+        }
+
+        LIVE_DATA.append(fake)
+
+        if len(LIVE_DATA) > MAX_BUFFER:
+            LIVE_DATA.pop(0)
+
     return jsonify({
         "data": LIVE_DATA,
-        "metrics": metrics.get_metrics()
+        "metrics": metrics.get_metrics(),
+        "agent_active": agent_active
     })
 
 @app.route("/")

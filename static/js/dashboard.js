@@ -20,6 +20,20 @@
         success: "#22c55e",
     };
 
+    function updateStatus(isActive) {
+    const node = document.getElementById("agentStatus");
+
+    if (!node) return;
+
+    if (isActive) {
+        node.textContent = "🟢 Agent Active (Live Data)";
+        node.style.color = "limegreen";
+    } else {
+        node.textContent = "🔴 Agent Offline (Demo Mode)";
+        node.style.color = "red";
+    }
+}
+
     function chartDefaults() {
         return {
             plugins: {
@@ -167,6 +181,7 @@
             stats.threats || 0
         ];
         attackChart.update();
+        updateStatus(payload.agent_active);
 
     } catch (err) {
         console.error("Polling error:", err);
