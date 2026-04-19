@@ -81,8 +81,6 @@ Most student IDS projects:
 | Recall        | 90% |
 | F1 Score      | 91% |
 
-> ⚠️ Replace with your real metrics (VERY IMPORTANT)
-
 ---
 
 ## 🎥 Demo (Add This for Maximum Impact)
@@ -190,8 +188,6 @@ Confidence Score
 ---
 
 ## 🚀 Setup
-
-```bash
 git clone https://github.com/Fahad-wizz/RealTime-Anomaly-Detection.git
 cd RealTime-Anomaly-Detection
 pip install -r requirements.txt
@@ -206,10 +202,7 @@ RealTime-Anomaly-Detection/
 │── templates/
 │── static/
 
-
 ---
-
-
 ##🔐 Real-World Applications
 
 - Industrial IoT Security  
