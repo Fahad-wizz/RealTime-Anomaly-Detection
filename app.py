@@ -454,8 +454,8 @@ def classify_live_flow(feature_row):
     if classifier_label != "Normal" and confidence > 60:
         return -1, classifier_label, round(confidence, 2)
 
-    if anomaly_flag == -1:
-        return -1, "Anomaly", 80.0
+    if anomaly_flag == -1 and confidence > 60:
+        return -1, "Anomaly", confidence
 
     return 1, "Normal", round(confidence, 2)
 

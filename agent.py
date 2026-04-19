@@ -39,13 +39,15 @@ while True:
     key, flow = flow_features.update_flow(data)
 
     packet_count = flow.get("packet_count", 0)
-
+    duration = flow.get("duration", 0)
     # 🔥 DEBUG: Flow growth
     print(f"📈 Flow [{key}] packets = {packet_count}")
 
     # ================= FLOW TRIGGER =================
     # Only process when flow is meaningful
-    if packet_count < 30:
+    if packet_count < 50:
+        continue
+    if duration < 0.5: 
         continue
 
     # ================= FEATURE EXTRACTION =================
