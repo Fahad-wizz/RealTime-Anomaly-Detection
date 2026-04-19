@@ -1,4 +1,4 @@
-import json
+import random
 import os
 import secrets
 import signal
@@ -509,14 +509,11 @@ def ingest_live_data():
     
 @app.route("/api/live")
 def get_live_data():
-    global LAST_AGENT_TIME
-
     now = time.time()
     agent_active = (now - LAST_AGENT_TIME) < AGENT_TIMEOUT
 
     # 🔥 AUTO DEMO MODE
     if not agent_active:
-        import random
 
         fake = {
             "src": f"192.168.1.{random.randint(1,255)}",
@@ -529,6 +526,17 @@ def get_live_data():
         }
 
         LIVE_DATA.append(fake)
+
+         # 🔥 ADD THIS (CRITICAL)
+        metrics.update_metrics(
+        {
+            "src": fake["src"],
+            "dst": fake["dst"],
+            "proto": fake["proto"]
+        },
+        fake["anomaly"],
+        fake["attack_type"]
+        )
 
         if len(LIVE_DATA) > MAX_BUFFER:
             LIVE_DATA.pop(0)
