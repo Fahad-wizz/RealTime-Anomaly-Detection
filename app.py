@@ -22,6 +22,8 @@ from model import FEATURE_COLUMNS, preprocess as preprocess_training_frame
 from sniffer import packet_queue, start_sniffing
 
 
+
+
 RAW_PACKET_COLUMNS = {"time", "source", "destination", "protocol", "length"}
 MODEL_FEATURE_COLUMNS = FEATURE_COLUMNS
 
@@ -47,7 +49,7 @@ app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='threading')
 
 isolation_model = joblib.load(MODELS_DIR / "model.pkl")
 isolation_scaler = joblib.load(MODELS_DIR / "scaler.pkl")
@@ -694,4 +696,4 @@ if __name__ == "__main__":
         threading.Thread(target=background_sniffer, daemon=True).start()
         threading.Thread(target=send_live_data, daemon=True).start()
 
-    socketio.run(app, debug=True)
+    socketio.run(app,host="0.0.0.0", port=10000, debug=True)
