@@ -24,7 +24,7 @@ from sniffer import packet_queue, start_sniffing
 
 
 LIVE_DATA = []
-MAX_BUFFER = 50
+MAX_BUFFER = 100
 
 RAW_PACKET_COLUMNS = {"time", "source", "destination", "protocol", "length"}
 MODEL_FEATURE_COLUMNS = FEATURE_COLUMNS
@@ -445,51 +445,50 @@ def ingest_live_data():
     global LIVE_DATA
 
     try:
-        # 🔥 1. Validate input
         data = request.get_json()
+
         if not data:
-            return jsonify({"error": "No JSON data received"}), 400
+            return jsonify({"error": "No data received"}), 400
 
-        # 🔥 2. Convert to DataFrame
-        df = pd.DataFrame([data])
+        # ✅ handle batch or single
+        rows = data if isinstance(data, list) else [data]
 
-        # 🔥 3. Align features (CRITICAL)
-        df = df.reindex(columns=MODEL_FEATURE_COLUMNS, fill_value=0)
+        for row in rows:
+            df = pd.DataFrame([row])
+            df = df.reindex(columns=MODEL_FEATURE_COLUMNS, fill_value=0)
 
-        # 🔥 4. Run ML
-        pred, attack_type, confidence = classify_live_flow(df.iloc[0].to_dict())
+            pred, attack_type, confidence = classify_live_flow(df.iloc[0].to_dict())
 
-        # 🔥 5. Update metrics
-        metrics.update_metrics(data, pred, attack_type)
+            # ✅ FIXED metrics input
+            metrics.update_metrics(
+                {
+                    "src": row.get("src"),
+                    "dst": row.get("dst"),
+                    "proto": row.get("proto")
+                },
+                pred,
+                attack_type
+            )
 
-        # 🔥 6. Log attacks
-        if pred == -1:
-            log_attack(data, attack_type)
+            if pred == -1:
+                log_attack(row, attack_type)
 
-        # 🔥 7. Prepare result (FOR DASHBOARD)
-        result = {
-            "src": str(data.get("src", "N/A")),
-            "dst": str(data.get("dst", "N/A")),
-            "proto": str(data.get("proto", "Unknown")),
-            "attack_type": attack_type,
-            "anomaly": int(pred),
-            "confidence": float(confidence),
-            "timestamp": time.time()
-        }
+            # ✅ store for dashboard
+            LIVE_DATA.append({
+                "src": row.get("src"),
+                "dst": row.get("dst"),
+                "proto": row.get("proto"),
+                "attack_type": attack_type,
+                "confidence": float(confidence),
+                "anomaly": int(pred),
+                "timestamp": time.time()
+            })
 
-        # 🔥 8. Store in memory buffer
-        LIVE_DATA.append(result)
+        # ✅ prevent overflow
+        if len(LIVE_DATA) > MAX_BUFFER:
+            LIVE_DATA = LIVE_DATA[-MAX_BUFFER:]
 
-        # keep only last 50 entries
-        if len(LIVE_DATA) > 50:
-            LIVE_DATA.pop(0)
-
-        # 🔥 9. Return response
-        return jsonify({
-            "status": "ok",
-            "prediction": attack_type,
-            "confidence": confidence
-        })
+        return jsonify({"status": "ok", "processed": len(rows)})
 
     except Exception as e:
         print("API ERROR:", e)
