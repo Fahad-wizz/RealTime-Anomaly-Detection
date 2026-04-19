@@ -4,9 +4,9 @@
 
 <div class="container mt-4">
 
-    <h3 class="mb-3">🚨 Live IDS Monitor</h3>
+    <h3 class="mb-3">🚨 Sentinel IDS Control Panel</h3>
 
-    <!-- STATS -->
+    <!-- ================= STATS ================= -->
     <div class="row mb-4">
 
         <div class="col-md-4">
@@ -32,7 +32,52 @@
 
     </div>
 
-    <!-- LIVE TABLE -->
+    <!-- ================= ATTACK CONTROL ================= -->
+    <div class="card shadow mb-4">
+        <div class="card-header">
+            ⚔️ Attack Simulation Control
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-3">
+                    <label>Target IP / Domain</label>
+                    <input type="text" id="targetIp" class="form-control" placeholder="your-render-url">
+                </div>
+
+                <div class="col-md-2">
+                    <label>Port</label>
+                    <input type="number" id="targetPort" class="form-control" value="80">
+                </div>
+
+                <div class="col-md-2">
+                    <label>Duration (sec)</label>
+                    <input type="number" id="duration" class="form-control" value="10">
+                </div>
+
+                <div class="col-md-2">
+                    <label>Rate (pps)</label>
+                    <input type="number" id="rate" class="form-control" value="100">
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-danger w-100 me-2" onclick="startAttack()">Start</button>
+                    <button class="btn btn-secondary w-100" onclick="stopAttack()">Stop</button>
+                </div>
+
+            </div>
+
+            <hr>
+
+            <p><strong>Status:</strong> <span id="attackStatus">Idle</span></p>
+            <p><strong>Packets Sent:</strong> <span id="packetsSent">0</span></p>
+
+        </div>
+    </div>
+
+    <!-- ================= LIVE TABLE ================= -->
     <div class="card shadow">
         <div class="card-header">
             Live Traffic Feed
@@ -50,9 +95,7 @@
                     </tr>
                 </thead>
 
-                <tbody id="liveTable">
-                </tbody>
-
+                <tbody id="liveTable"></tbody>
             </table>
         </div>
     </div>
@@ -61,56 +104,6 @@
 
 <!-- SOCKET -->
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-
-<script>
-
-const socket = io();
-
-let total = 0;
-let attacks = 0;
-let normal = 0;
-
-socket.on("anomaly", (data) => {
-
-    total++;
-
-    if (data.prediction === "ATTACK") {
-        attacks++;
-    } else {
-        normal++;
-    }
-
-    document.getElementById("totalPackets").innerText = total;
-    document.getElementById("attackCount").innerText = attacks;
-    document.getElementById("normalCount").innerText = normal;
-
-    // ADD ROW
-    const table = document.getElementById("liveTable");
-
-    const row = document.createElement("tr");
-
-    row.innerHTML = `
-        <td>${new Date().toLocaleTimeString()}</td>
-        <td>${data.src}</td>
-        <td>
-            <span class="badge ${data.prediction === "ATTACK" ? "bg-danger" : "bg-success"}">
-                ${data.prediction}
-            </span>
-        </td>
-        <td>${data.attack_type}</td>
-        <td>${data.confidence}%</td>
-    `;
-
-    // NEWEST ON TOP
-    table.prepend(row);
-
-    // LIMIT ROWS (performance)
-    if (table.children.length > 100) {
-        table.removeChild(table.lastChild);
-    }
-
-});
-
-</script>
+<script src="/static/js/monitor.js"></script>
 
 {% endblock %}

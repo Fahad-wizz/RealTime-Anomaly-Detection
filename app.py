@@ -798,6 +798,51 @@ def download_result(file_id):
 def monitor():
     return render_template("monitor.html")
 
+import requests
+
+NGROK_URL = "https://subwoofer-barman-anemia.ngrok-free.dev"
+
+
+@app.route("/attack/start", methods=["POST"])
+def start_attack():
+    res = requests.post(f"{NGROK_URL}/attack/start", json=request.json)
+    return res.json()
+
+
+@app.route("/attack/status/<attack_id>")
+def attack_status(attack_id):
+    res = requests.get(f"{NGROK_URL}/attack/status/{attack_id}")
+    return res.json()
+
+
+@app.route("/attack/stop", methods=["POST"])
+def stop_attack():
+    res = requests.post(f"{NGROK_URL}/attack/stop", json=request.json)
+    return res.json()
+
+@app.route("/api/live-data")
+def live_data():
+
+    since = request.args.get("since", type=float)
+
+    if since:
+        filtered = [x for x in LIVE_DATA if x["timestamp"] > since]
+    else:
+        filtered = LIVE_DATA[-50:]
+
+    # 🔥 NORMALIZE FORMAT FOR FRONTEND
+    output = []
+
+    for item in filtered:
+        output.append({
+            "timestamp": item["timestamp"],
+            "src": item["src"],
+            "prediction": "ATTACK" if item["anomaly"] == -1 else "NORMAL",
+            "attack_type": item["attack_type"],
+            "confidence": item["confidence"]
+        })
+
+    return jsonify(output)
 
 def background_sniffer():
     print("Sniffer started")
