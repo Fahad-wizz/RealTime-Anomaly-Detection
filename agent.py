@@ -18,7 +18,16 @@ print("🚀 Starting agent...")
 # ================= START SNIFFER =================
 threading.Thread(target=start_sniffing, daemon=True).start()
 
+def heartbeat():
+    while True:
+        try:
+            requests.post(SERVER_URL, json={"heartbeat": True}, timeout=2)
+        except:
+            pass
+        time.sleep(2)
 
+# start it
+threading.Thread(target=heartbeat, daemon=True).start()
 # ================= SEND FUNCTION =================
 def send_batch(batch_data):
     for attempt in range(3):
@@ -45,7 +54,7 @@ while True:
 
     # ================= FLOW TRIGGER =================
     # Only process when flow is meaningful
-    if packet_count < 50:
+    if packet_count < 30:
         continue
     if duration < 0.5: 
         continue

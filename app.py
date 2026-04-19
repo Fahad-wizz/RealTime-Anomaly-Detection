@@ -510,7 +510,12 @@ def ingest_live_data():
             processed += 1
 
         # 🔥 update heartbeat AFTER success
-        LAST_AGENT_TIME = time.time()
+        data = request.get_json()
+
+# 🔥 ADD THIS
+        if isinstance(data, dict) and data.get("heartbeat"):
+            LAST_AGENT_TIME = time.time()
+            return jsonify({"status": "alive"})
 
         # ✅ prevent memory overflow
         if len(LIVE_DATA) > MAX_BUFFER:
