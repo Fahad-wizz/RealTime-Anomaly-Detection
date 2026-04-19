@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Sentinel IDS | Results{% endblock %}
+{% block page_heading %}Analysis Results{% endblock %}
+
+{% block content %}
+<section class="results-layout">
+    <section class="metric-grid" data-reveal>
+        <article class="metric-card metric-card--accent">
+            <span class="metric-card__icon"><i class="fa-solid fa-table-list"></i></span>
+            <strong>{{ summary.total }}</strong>
+            <p>Total flow records available in this result file.</p>
+        </article>
+        <article class="metric-card metric-card--danger">
+            <span class="metric-card__icon"><i class="fa-solid fa-bug"></i></span>
+            <strong>{{ summary.attacks }}</strong>
+            <p>Rows labeled as attack behavior by the scoring engine.</p>
+        </article>
+        <article class="metric-card metric-card--success">
+            <span class="metric-card__icon"><i class="fa-solid fa-circle-check"></i></span>
+            <strong>{{ summary.normal }}</strong>
+            <p>Flows that remained in the normal traffic class.</p>
+        </article>
+        <article class="metric-card metric-card--warning">
+            <span class="metric-card__icon"><i class="fa-solid fa-percent"></i></span>
+            <strong>{{ summary.avg_conf }}%</strong>
+            <p>Average confidence score across this result page set.</p>
+        </article>
+    </section>
+
+    <section class="dashboard-grid">
+        <article class="panel chart-panel" data-reveal>
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Distribution Analysis</p>
+                    <h3>Attack category breakdown</h3>
+                </div>
+                <a class="btn btn-ghost btn-small" href="{{ url_for('download_result', file_id=file_id) }}">Download CSV</a>
+            </div>
+            <div class="chart-box">
+                <canvas id="attackChart"></canvas>
+            </div>
+        </article>
+
+        <article class="panel" data-reveal>
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Interactive Filters</p>
+                    <h3>Search and narrow results</h3>
+                </div>
+                <span class="pill">Client-side</span>
+            </div>
+
+            <div class="results-toolbar">
+                <label class="field">
+                    <span>Attack Type</span>
+                    <div class="input-shell input-shell--select">
+                        <i class="fa-solid fa-filter"></i>
+                        <select id="attackFilter">
+                            <option value="ALL">All attack types</option>
+                        </select>
+                    </div>
+                </label>
+                <label class="field">
+                    <span>Search</span>
+                    <div class="input-shell">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchBox" placeholder="Search by source, status, or attack type">
+                    </div>
+                </label>
+            </div>
+
+            <div class="stacked-metrics stacked-metrics--compact">
+                <div>
+                    <strong>Page {{ page }}</strong>
+                    <span>of {{ total_pages }}</span>
+                </div>
+                <div>
+                    <strong>{{ data | length }}</strong>
+                    <span>rows visible on this page</span>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section class="panel" data-reveal>
+        <div class="panel-header">
+            <div>
+                <p class="eyebrow">Detailed Verdicts</p>
+                <h3>Per-flow classification output</h3>
+            </div>
+            <span class="pill pill-accent">Sortable via browser search</span>
+        </div>
+
+        
+    </section>
+</section>
+<section class="panel">
+
+<div class="table-shell">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Attack Type</th>
+                <th>Confidence</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            {% for row in data %}
+            <tr 
+                data-attack="{{ (row.attack_type or 'unknown') | lower | replace(' ', '_') }}" 
+                data-prediction="{{ row.prediction }}"
+            >
+                <td>{{ row.src or "N/A" }}</td>
+                <td>
+                    {% if row.prediction == "ATTACK" %}
+                    <span class="pill pill-danger">Attack</span>
+                    {% else %}
+                    <span class="pill pill-success">Normal</span>
+                    {% endif %}
+                </td>
+                <td>{{ row.attack_type }}</td>
+                <td>{{ row.confidence }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="pagination-bar">
+            {% if page > 1 %}
+            <a href="{{ url_for('upload_results', file_id=file_id, page=page-1) }}" class="btn btn-ghost btn-small">Previous</a>
+            {% else %}
+            <span></span>
+            {% endif %}
+
+            <p>Page {{ page }} of {{ total_pages }}</p>
+
+            {% if page < total_pages %}
+            <a href="{{ url_for('upload_results', file_id=file_id, page=page+1) }}" class="btn btn-ghost btn-small">Next</a>
+            {% else %}
+            <span></span>
+            {% endif %}
+        </div>
+</section>
+
+<script id="attackCounts" type="application/json">{{ attack_counts | tojson }}</script>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/results.js') }}"></script>
+{% endblock %}

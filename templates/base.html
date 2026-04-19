@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sentinel IDS{% endblock %}</title>
+    <meta
+        name="description"
+        content="Sentinel IDS is a premium intrusion detection dashboard for threat visibility, anomaly analysis, and secure upload workflows."
+    >
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet"
+    >
+    <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        rel="stylesheet"
+    >
+
+    <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <div class="site-backdrop">
+        <div class="site-backdrop__orb site-backdrop__orb--one"></div>
+        <div class="site-backdrop__orb site-backdrop__orb--two"></div>
+        <div class="site-backdrop__grid"></div>
+    </div>
+
+    <div class="page-shell {% if session.get('user') %}page-shell--authenticated{% endif %}">
+        <aside class="app-sidebar" id="appSidebar">
+            <div class="brand-lockup">
+                <div class="brand-lockup__mark">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <a class="brand-lockup__name" href="{{ url_for('home') }}">Sentinel IDS</a>
+                    <p class="brand-lockup__meta">Threat intelligence console</p>
+                </div>
+            </div>
+
+            <nav class="nav-stack">
+                <a class="nav-link {% if request.path == '/' %}is-active{% endif %}" href="{{ url_for('home') }}">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Overview</span>
+                </a>
+
+                {% if session.get("user") %}
+                <a class="nav-link {% if request.path.startswith('/dashboard') %}is-active{% endif %}" href="{{ url_for('dashboard') }}">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a class="nav-link {% if request.path.startswith('/upload') %}is-active{% endif %}" href="{{ url_for('upload') }}">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Upload Analysis</span>
+                </a>
+                <a class="nav-link {% if request.path.startswith('/monitor') %}is-active{% endif %}" href="{{ url_for('monitor') }}">
+                    <i class="fa-solid fa-desktop"></i>
+                    <span>Monitor</span>
+                </a>
+                
+
+                {% else %}
+                <a class="nav-link {% if request.path.startswith('/login') %}is-active{% endif %}" href="{{ url_for('login') }}">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span>Secure Login</span>
+                </a>
+                <a class="nav-link {% if request.path.startswith('/register') %}is-active{% endif %}" href="{{ url_for('register') }}">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Create Account</span>
+                </a>
+                {% endif %}
+            </nav>
+
+            <div class="sidebar-status panel">
+                <div class="status-badge">
+                    <span class="status-badge__dot"></span>
+                    <span>Secure perimeter online</span>
+                </div>
+                <p>
+                    {{ "Authenticated operator session active." if session.get("user") else "Sign in to unlock live network telemetry and upload scoring." }}
+                </p>
+            </div>
+        </aside>
+
+        <div class="shell-overlay" id="shellOverlay"></div>
+
+        <div class="app-main">
+            <header class="topbar">
+                <div class="topbar__left">
+                    <button
+                        type="button"
+                        class="icon-button topbar__menu"
+                        id="navToggle"
+                        aria-label="Open navigation"
+                        aria-expanded="false"
+                    >
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+
+                    <div>
+                        <p class="eyebrow">Cybersecurity Operations</p>
+                        <h1 class="topbar__title">{% block page_heading %}Precision Threat Monitoring{% endblock %}</h1>
+                    </div>
+                </div>
+
+                <div class="topbar__right">
+                    <button type="button" class="icon-button" id="themeToggle" aria-label="Toggle theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+
+                    {% if session.get("user") %}
+                    <div class="operator-chip">
+                        <div class="operator-chip__avatar">{{ session.get("user", "U")[:1] | upper }}</div>
+                        <div>
+                            <strong>{{ session.get("user") }}</strong>
+                            <span>Active operator</span>
+                        </div>
+                    </div>
+                    <a class="btn btn-ghost" href="{{ url_for('upload') }}">Analyze CSV</a>
+                    <a class="btn btn-danger" href="{{ url_for('logout') }}">Logout</a>
+                    {% else %}
+                    <a class="btn btn-ghost" href="{{ url_for('login') }}">Login</a>
+                    <a class="btn btn-primary" href="{{ url_for('register') }}">Get Started</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <main class="page-content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    {% block page_scripts %}{% endblock %}
+</body>
+</html>

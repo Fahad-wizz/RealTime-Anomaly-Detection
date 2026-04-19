@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Sentinel IDS | Register{% endblock %}
+{% block page_heading %}Provision A New Operator{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+
+{% block content %}
+<section class="auth-layout">
+    <div class="auth-copy panel" data-reveal>
+        <p class="eyebrow">Workspace Provisioning</p>
+        <h2>Create a secure account and start monitoring traffic with a premium cyber workflow.</h2>
+        <p>
+            Register once to unlock the live dashboard, upload pipeline, and attack result explorer in a consistent control-center interface.
+        </p>
+        <div class="auth-benefits">
+            <div>
+                <i class="fa-solid fa-fingerprint"></i>
+                <span>Protected password handling with progressive strength feedback</span>
+            </div>
+            <div>
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Unified access to uploads, dashboards, and result history</span>
+            </div>
+            <div>
+                <i class="fa-solid fa-satellite-dish"></i>
+                <span>Purpose-built visuals for high-focus cyber operations</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-card panel" data-reveal>
+        <div class="panel-header">
+            <div>
+                <p class="eyebrow">Registration</p>
+                <h3>Create operator account</h3>
+            </div>
+            <span class="pill pill-accent">New Session</span>
+        </div>
+
+        {% if error %}
+        <div class="feedback-banner feedback-banner--danger">
+            <i class="fa-solid fa-circle-xmark"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form method="POST" id="registerForm" class="form-stack">
+            <label class="field">
+                <span>Username</span>
+                <div class="input-shell">
+                    <i class="fa-solid fa-user-astronaut"></i>
+                    <input type="text" name="username" placeholder="Choose an operator name" autocomplete="username" required>
+                </div>
+            </label>
+
+            <label class="field">
+                <span>Password</span>
+                <div class="input-shell">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="regPassword" name="password" placeholder="Create a strong password" autocomplete="new-password" required>
+                    <button type="button" class="input-shell__toggle" id="regPasswordToggle" aria-label="Show password">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+            </label>
+
+            <div class="strength-meter">
+                <div class="strength-meter__bar">
+                    <div id="strengthFill" class="strength-meter__fill"></div>
+                </div>
+                <p id="strengthText">Password strength will appear here.</p>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="registerBtn" type="submit">
+                <span>Create Secure Account</span>
+            </button>
+        </form>
+
+        <p class="auth-footnote">
+            Already registered?
+            <a href="{{ url_for('login') }}">Log in instead</a>
+        </p>
+    </div>
+</section>
+
+<script>
+    (function () {
+        const passwordInput = document.getElementById("regPassword");
+        const passwordToggle = document.getElementById("regPasswordToggle");
+        const strengthFill = document.getElementById("strengthFill");
+        const strengthText = document.getElementById("strengthText");
+        const registerForm = document.getElementById("registerForm");
+        const registerBtn = document.getElementById("registerBtn");
+
+        passwordToggle.addEventListener("click", function () {
+            const isHidden = passwordInput.type === "password";
+            passwordInput.type = isHidden ? "text" : "password";
+            passwordToggle.innerHTML = `<i class="fa-solid ${isHidden ? "fa-eye-slash" : "fa-eye"}"></i>`;
+        });
+
+        passwordInput.addEventListener("input", function () {
+            const value = passwordInput.value;
+            let score = 0;
+
+            if (value.length >= 8) score += 1;
+            if (/[A-Z]/.test(value)) score += 1;
+            if (/[0-9]/.test(value)) score += 1;
+            if (/[^A-Za-z0-9]/.test(value)) score += 1;
+
+            const states = [
+                { width: "8%", label: "Password strength will appear here.", color: "var(--panel-border)" },
+                { width: "25%", label: "Weak password", color: "var(--danger)" },
+                { width: "50%", label: "Moderate password", color: "var(--warning)" },
+                { width: "75%", label: "Strong password", color: "var(--accent-strong)" },
+                { width: "100%", label: "Very strong password", color: "var(--success)" },
+            ];
+
+            const state = states[score];
+            strengthFill.style.width = state.width;
+            strengthFill.style.background = state.color;
+            strengthText.textContent = state.label;
+        });
+
+        registerForm.addEventListener("submit", function () {
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = "<span>Creating account...</span>";
+        });
+    })();
+</script>
+{% endblock %}

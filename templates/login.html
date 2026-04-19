@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Sentinel IDS | Login{% endblock %}
+{% block page_heading %}Secure Operator Access{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+
+{% block content %}
+<section class="auth-layout">
+    <div class="auth-copy panel" data-reveal>
+        <p class="eyebrow">Restricted Access</p>
+        <h2>Authenticate into the threat intelligence workspace.</h2>
+        <p>
+            Review live attack metrics, upload traffic for scoring, and keep a clean operator trail inside the Sentinel command environment.
+        </p>
+        <div class="auth-benefits">
+            <div>
+                <i class="fa-solid fa-bolt"></i>
+                <span>Fast login state handling with clear form feedback</span>
+            </div>
+            <div>
+                <i class="fa-solid fa-shield-virus"></i>
+                <span>Security-first presentation tuned for analyst workflows</span>
+            </div>
+            <div>
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Immediate access to live charts and upload review tools</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-card panel" data-reveal>
+        <div class="panel-header">
+            <div>
+                <p class="eyebrow">Operator Login</p>
+                <h3>Welcome back</h3>
+            </div>
+            <span class="pill pill-success">Encrypted Session</span>
+        </div>
+
+        {% if error %}
+        <div class="feedback-banner feedback-banner--danger">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form method="POST" id="loginForm" class="form-stack">
+            <label class="field">
+                <span>Username</span>
+                <div class="input-shell">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" name="username" placeholder="Enter your username" autocomplete="username" required>
+                </div>
+            </label>
+
+            <label class="field">
+                <span>Password</span>
+                <div class="input-shell">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+                    <button type="button" class="input-shell__toggle" id="passwordToggle" aria-label="Show password">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+            </label>
+
+            <button class="btn btn-primary btn-block" id="loginBtn" type="submit">
+                <span>Enter Workspace</span>
+            </button>
+        </form>
+
+        <p class="auth-footnote">
+            Need an account?
+            <a href="{{ url_for('register') }}">Create one here</a>
+        </p>
+    </div>
+</section>
+
+<script>
+    (function () {
+        const passwordInput = document.getElementById("password");
+        const passwordToggle = document.getElementById("passwordToggle");
+        const loginForm = document.getElementById("loginForm");
+        const loginBtn = document.getElementById("loginBtn");
+
+        passwordToggle.addEventListener("click", function () {
+            const isHidden = passwordInput.type === "password";
+            passwordInput.type = isHidden ? "text" : "password";
+            passwordToggle.innerHTML = `<i class="fa-solid ${isHidden ? "fa-eye-slash" : "fa-eye"}"></i>`;
+        });
+
+        loginForm.addEventListener("submit", function () {
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span>Authenticating...</span>';
+        });
+    })();
+</script>
+{% endblock %}

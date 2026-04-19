@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Sentinel IDS | Dashboard{% endblock %}
+{% block page_heading %}Live Threat Telemetry{% endblock %}
+
+{% block content %}
+{% set metrics = initial_metrics or {'total': 0, 'threats': 0, 'normal': 0, 'top_ip': '-', 'alerts': []} %}
+
+<section class="hero-banner panel" data-reveal>
+    <div>
+        <p class="eyebrow">Streaming Analysis</p>
+        <h2>Monitor traffic, anomalies, and top attacker activity in real time.</h2>
+        <p class="section-copy">
+            The live dashboard receives socket updates from the packet processing pipeline and continuously refreshes counts, charts, and alert trails.
+        </p>
+    </div>
+    <div class="hero-banner__status">
+        <span class="live-pill">
+            <span class="status-dot"></span>
+            Live Feed Active
+        </span>
+        <p>High-signal view for operators watching flow anomalies as they surface.</p>
+    </div>
+</section>
+
+<section class="metric-grid" data-reveal>
+    <article class="metric-card metric-card--accent">
+        <span class="metric-card__icon"><i class="fa-solid fa-network-wired"></i></span>
+        <strong id="total">{{ metrics.total }}</strong>
+        <p>Total traffic records processed by the live pipeline.</p>
+    </article>
+    <article class="metric-card metric-card--danger">
+        <span class="metric-card__icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+        <strong id="anomalies">{{ metrics.threats }}</strong>
+        <p>Threat events detected across anomaly and classifier scoring.</p>
+    </article>
+    <article class="metric-card metric-card--success">
+        <span class="metric-card__icon"><i class="fa-solid fa-shield"></i></span>
+        <strong id="normal">{{ metrics.normal }}</strong>
+        <p>Traffic classified as normal after model evaluation.</p>
+    </article>
+    <article class="metric-card metric-card--warning">
+        <span class="metric-card__icon"><i class="fa-solid fa-user-secret"></i></span>
+        <strong id="top_ip">{{ metrics.top_ip }}</strong>
+        <p>Most frequent source currently associated with suspicious activity.</p>
+    </article>
+</section>
+
+<section class="dashboard-grid">
+    <article class="panel chart-panel" data-reveal>
+        <div class="panel-header">
+            <div>
+                <p class="eyebrow">Telemetry Trend</p>
+                <h3>Traffic vs threat timeline</h3>
+            </div>
+            <span class="pill pill-accent">Rolling 10 points</span>
+        </div>
+        <div class="chart-box">
+            <canvas id="trafficChart"></canvas>
+        </div>
+    </article>
+
+    <article class="panel chart-panel" data-reveal>
+        <div class="panel-header">
+            <div>
+                <p class="eyebrow">Distribution</p>
+                <h3>Normal vs detected threat</h3>
+            </div>
+            <span class="pill pill-warning">Live ratio</span>
+        </div>
+        <div class="chart-box chart-box--compact">
+            <canvas id="attackChart"></canvas>
+        </div>
+    </article>
+
+    <article class="panel" data-reveal>
+        <div class="panel-header">
+            <div>
+                <p class="eyebrow">Recent Alerts</p>
+                <h3>Analyst queue</h3>
+            </div>
+            <span class="pill">Latest 10</span>
+        </div>
+        <div class="alert-list" id="alerts">
+            {% for alert in recent_alerts %}
+            <div class="alert-row">
+                <div class="alert-row__icon"><i class="fa-solid fa-satellite-dish"></i></div>
+                <div>
+                    <strong>{{ alert.src }}</strong>
+                    <p>{{ alert.proto }} - {{ alert.attack_type }}</p>
+                </div>
+                <span>{{ alert.timestamp }}</span>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-wave-square"></i>
+                <p>No alerts yet. Live detections will appear here.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="panel" data-reveal>
+        <div class="panel-header">
+            <div>
+                <p class="eyebrow">Quick Actions</p>
+                <h3>Investigation shortcuts</h3>
+            </div>
+            <span class="pill pill-success">Operator Ready</span>
+        </div>
+        <div class="action-stack">
+            <a href="{{ url_for('upload') }}" class="action-link">
+                <div>
+                    <strong>Analyze historical CSV</strong>
+                    <p>Run the upload pipeline on previously captured traffic.</p>
+                </div>
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            {% if session.get("last_result_file_id") %}
+            <a href="{{ url_for('upload_results', file_id=session.get('last_result_file_id')) }}" class="action-link">
+                <div>
+                    <strong>Open latest result set</strong>
+                    <p>Continue reviewing the most recently generated analysis output.</p>
+                </div>
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+            {% endif %}
+            <div class="action-link action-link--muted">
+                <div>
+                    <strong>Automated report generation</strong>
+                    <p>Reserved for future reporting workflows.</p>
+                </div>
+                <i class="fa-solid fa-file-lines"></i>
+            </div>
+        </div>
+    </article>
+</section>
+
+<script id="dashboardMetrics" type="application/json">{{ metrics | tojson }}</script>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Sentinel IDS | Threat Visibility{% endblock %}
+{% block page_heading %}Command Your Network Surface{% endblock %}
+
+{% block content %}
+<section class="hero-panel" data-reveal>
+    <div class="hero-panel__content">
+        <p class="eyebrow">AI-Driven Intrusion Detection</p>
+        <h2>Premium cyber defense visuals for anomaly detection, flow scoring, and live threat awareness.</h2>
+        <p class="hero-panel__copy">
+            Sentinel IDS combines upload-based analysis with streaming telemetry so operators can inspect normal traffic, isolate anomalies,
+            and surface attack behavior through a calm, high-signal command experience.
+        </p>
+
+        <div class="hero-panel__actions">
+            {% if session.get("user") %}
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Open Live Dashboard</a>
+            <a href="{{ url_for('upload') }}" class="btn btn-ghost">Upload Traffic CSV</a>
+            {% else %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary">Launch Secure Workspace</a>
+            <a href="{{ url_for('login') }}" class="btn btn-ghost">Access Existing Account</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="hero-panel__visual">
+        <div class="signal-card signal-card--scan">
+            <span class="signal-card__label">Live Risk Matrix</span>
+            <strong>Adaptive anomaly correlation</strong>
+            <p>Scans packet flows, elevates suspicious patterns, and keeps operators focused on the highest-risk events.</p>
+        </div>
+        <div class="signal-card signal-card--grid">
+            <span class="signal-card__label">Response Posture</span>
+            <div class="signal-meter">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <small>Models trained for high-confidence classification and rapid analyst review.</small>
+        </div>
+    </div>
+</section>
+
+<section class="metric-grid" data-reveal>
+    <article class="metric-card">
+        <span class="metric-card__icon"><i class="fa-solid fa-database"></i></span>
+        <strong data-count-up="30000">30,000+</strong>
+        <p>Labeled samples used to build reliable attack detection workflows.</p>
+    </article>
+    <article class="metric-card">
+        <span class="metric-card__icon"><i class="fa-solid fa-wave-square"></i></span>
+        <strong data-count-up="37">37</strong>
+        <p>Flow features transformed into signals for anomaly and classifier pipelines.</p>
+    </article>
+    <article class="metric-card">
+        <span class="metric-card__icon"><i class="fa-solid fa-skull-crossbones"></i></span>
+        <strong data-count-up="6">6+</strong>
+        <p>Attack categories monitored across normal, anomalous, and known threat behavior.</p>
+    </article>
+    <article class="metric-card">
+        <span class="metric-card__icon"><i class="fa-solid fa-crosshairs"></i></span>
+        <strong data-count-up="98">98%</strong>
+        <p>High-accuracy performance profile across the primary supervised model suite.</p>
+    </article>
+</section>
+
+<section class="feature-layout">
+    <article class="panel feature-card" data-reveal>
+        <p class="eyebrow">Operational Focus</p>
+        <h3>Designed like a security command deck, not a generic admin panel.</h3>
+        <p>
+            The interface emphasizes hierarchy, alert visibility, fast scanning, and motion that guides attention without distracting from the data.
+        </p>
+        <ul class="feature-list">
+            <li>Animated signal states and scroll reveals</li>
+            <li>Persistent dark and light themes with premium contrast</li>
+            <li>Dashboard cards built for live telemetry and chart reading</li>
+        </ul>
+    </article>
+
+    <article class="panel feature-card" data-reveal>
+        <p class="eyebrow">Core Capabilities</p>
+        <h3>Move from raw CSV upload to threat verdicts in one flow.</h3>
+        <div class="timeline-list">
+            <div>
+                <span>01</span>
+                <p>Upload packet or flow data in CSV format.</p>
+            </div>
+            <div>
+                <span>02</span>
+                <p>Normalize traffic into model-ready features.</p>
+            </div>
+            <div>
+                <span>03</span>
+                <p>Review attack labels, confidence scores, and summary charts.</p>
+            </div>
+        </div>
+    </article>
+
+    <article class="panel feature-card" data-reveal>
+        <p class="eyebrow">Stack</p>
+        <h3>Machine learning, web telemetry, and analyst-friendly presentation.</h3>
+        <div class="tag-cloud">
+            <span>Flask</span>
+            <span>Socket.IO</span>
+            <span>scikit-learn</span>
+            <span>Pandas</span>
+            <span>Chart.js</span>
+            <span>SQLite</span>
+        </div>
+    </article>
+</section>
+
+<section class="cta-panel panel" data-reveal>
+    <div>
+        <p class="eyebrow">Ready To Operate</p>
+        <h3>Launch a cleaner, sharper intrusion detection workflow.</h3>
+        <p>Open the dashboard for live traffic insights or upload historical traffic for model-backed classification.</p>
+    </div>
+    <div class="cta-panel__actions">
+        {% if session.get("user") %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">View Dashboard</a>
+        {% else %}
+        <a href="{{ url_for('register') }}" class="btn btn-primary">Create Account</a>
+        {% endif %}
+        <a href="{{ url_for('upload') if session.get('user') else url_for('login') }}" class="btn btn-ghost">Start Analysis</a>
+    </div>
+</section>
+{% endblock %}

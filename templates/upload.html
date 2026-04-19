@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Sentinel IDS | Upload Analysis{% endblock %}
+{% block page_heading %}Upload Traffic For Classification{% endblock %}
+
+{% block content %}
+<section class="upload-layout">
+    <div class="panel upload-panel" data-reveal>
+        <div class="panel-header">
+            <div>
+                <p class="eyebrow">Batch Analysis</p>
+                <h2>Drop a CSV and let the detection pipeline classify suspicious flows.</h2>
+            </div>
+            <span class="pill pill-success">ML Pipeline Ready</span>
+        </div>
+
+        <p class="section-copy">
+            Upload either raw packet data with time, source, destination, protocol, and length columns, or normalized flow-level feature CSVs.
+        </p>
+
+        <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data" id="uploadForm" class="form-stack">
+            <label class="drop-zone" id="dropZone" for="fileInput">
+                <input type="file" name="file" id="fileInput" accept=".csv" required>
+                <div class="drop-zone__icon">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                </div>
+                <div>
+                    <strong>Drag and drop your CSV here</strong>
+                    <p>or click to browse local traffic logs</p>
+                </div>
+                <span class="drop-zone__badge">CSV Only</span>
+            </label>
+
+            <div class="file-preview" id="filePreview" hidden>
+                <i class="fa-solid fa-file-csv"></i>
+                <div>
+                    <strong id="filePreviewName">No file selected</strong>
+                    <p id="filePreviewMeta">Upload a CSV up to your browser-supported limit.</p>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <label class="field">
+                    <span>Detection Mode</span>
+                    <div class="input-shell input-shell--select">
+                        <i class="fa-solid fa-brain"></i>
+                        <select disabled>
+                            <option selected>Hybrid: Isolation Forest + Classifier</option>
+                        </select>
+                    </div>
+                </label>
+
+                <label class="field">
+                    <span>Execution Profile</span>
+                    <div class="input-shell input-shell--select">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <select disabled>
+                            <option selected>Balanced accuracy and throughput</option>
+                        </select>
+                    </div>
+                </label>
+            </div>
+
+            <div class="upload-progress" id="uploadProgress" aria-hidden="true">
+                <div class="upload-progress__meta">
+                    <span>Upload pipeline</span>
+                    <strong id="uploadStatus">Awaiting file</strong>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="uploadBtn">
+                <span>Start Analysis</span>
+            </button>
+        </form>
+    </div>
+
+    <div class="upload-side">
+        <article class="panel" data-reveal>
+            <p class="eyebrow">Accepted Inputs</p>
+            <h3>Flexible data ingestion</h3>
+            <ul class="feature-list">
+                <li>Raw packet rows with timing and length fields</li>
+                <li>Flow datasets aligned to the model feature schema</li>
+                <li>Automatic conversion into scoring-ready structures</li>
+            </ul>
+        </article>
+
+        <article class="panel" data-reveal>
+            <p class="eyebrow">Pipeline Output</p>
+            <h3>What you get after scoring</h3>
+            <div class="stacked-metrics">
+                <div>
+                    <strong>Prediction Labels</strong>
+                    <span>Normal vs attack classification</span>
+                </div>
+                <div>
+                    <strong>Confidence Levels</strong>
+                    <span>Confidence score per flow</span>
+                </div>
+                <div>
+                    <strong>Result Export</strong>
+                    <span>Downloadable CSV and chart-ready summaries</span>
+                </div>
+            </div>
+        </article>
+    </div>
+</section>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+{% endblock %}
