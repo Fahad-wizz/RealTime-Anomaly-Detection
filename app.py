@@ -311,11 +311,26 @@ def map_cicids_to_model_features(df):
 
 def normalize_flow_dataframe(df):
     flow_df = preprocess_training_frame(df.copy())
+
     if flow_df.empty:
-        raise ValueError("The uploaded flow data is empty after preprocessing.")
-    ordered_columns = ["flow_id", "src", "dst", "proto", *MODEL_FEATURE_COLUMNS]
-    available_columns = [column for column in ordered_columns if column in flow_df.columns]
-    return flow_df[available_columns].copy()
+        raise ValueError("Empty after preprocessing")
+
+    # 🔥 FORCE METADATA EXTRACTION FROM ORIGINAL DF
+    df.columns = df.columns.str.strip().str.lower()
+
+    flow_df["src"] = df.get("source ip", df.get("source", "N/A"))
+    flow_df["dst"] = df.get("destination ip", df.get("destination", "N/A"))
+    flow_df["proto"] = df.get("protocol", "Unknown")
+
+    # 🔥 CLEAN
+    flow_df["src"] = flow_df["src"].astype(str).replace(["nan", "None"], "N/A")
+    flow_df["dst"] = flow_df["dst"].astype(str).replace(["nan", "None"], "N/A")
+    flow_df["proto"] = flow_df["proto"].astype(str).replace(["nan", "None"], "Unknown")
+
+    # 🔥 FINAL COLUMN ORDER
+    required_cols = ["src", "dst", "proto", *MODEL_FEATURE_COLUMNS]
+
+    return flow_df[required_cols]
 
 
 def prepare_upload_features(df):
@@ -695,6 +710,9 @@ def upload():
 
             if missing:
                 raise ValueError(f"❌ Missing required features: {missing}")
+            
+            if not all(col in temp_df.columns for col in ["src", "dst", "proto"]):
+                raise ValueError("Missing metadata → fallback required")
 
             # -------------------------------
             # STEP 4: ZERO / NAN DETECTION
