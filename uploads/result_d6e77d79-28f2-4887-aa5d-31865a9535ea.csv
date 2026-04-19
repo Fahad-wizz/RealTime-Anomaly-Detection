@@ -1,3 +1,0 @@
-flow_id,src,dst,proto,prediction,attack_type,confidence,duration,bytes,anomaly_flag
-10.0.0.1_10.0.0.2_6,10.0.0.1,10.0.0.2,6,NORMAL,Normal,100.0,2.0,600.0,1
-10.0.0.3_10.0.0.4_17,10.0.0.3,10.0.0.4,17,ATTACK,Anomaly,100.0,0.5,900000.0,-1
