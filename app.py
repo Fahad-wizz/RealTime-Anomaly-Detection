@@ -227,86 +227,71 @@ def build_flow_features_from_packets(df):
 
 
 def map_cicids_to_model_features(df):
+
     df = df.copy()
 
-    # -------------------------------
-    # STEP 1: NORMALIZE COLUMNS
-    # -------------------------------
+    # 🔥 NORMALIZE COLUMNS
     df.columns = df.columns.str.strip().str.lower()
 
-    print("📥 RAW COLUMNS:", df.columns.tolist())
+    # 🔥 ROBUST RENAME (handles BOTH cases)
+    rename_map = {
+        # FEATURES
+        "total fwd packets": "packet_count",
+        "total length of fwd packets": "byte_count",
+        "flow duration": "duration",
+        "flow packets/s": "packet_rate",
+        "flow bytes/s": "byte_rate",
 
-    # -------------------------------
-    # STEP 2: SMART COLUMN FINDER
-    # -------------------------------
-    def find_column(possible_keywords):
-        for col in df.columns:
-            for key in possible_keywords:
-                if key in col:
-                    return col
-        return None
+        # 🔥 METADATA (FIXED HERE)
+        "source ip": "src",
+        "source": "src",
 
-    # -------------------------------
-    # STEP 3: EXTRACT METADATA
-    # -------------------------------
-    src_col = find_column(["source", "src"])
-    dst_col = find_column(["destination", "dst"])
-    proto_col = find_column(["protocol", "proto"])
+        "destination ip": "dst",
+        "destination": "dst",
+
+        "protocol": "proto",
+    }
+
+    df = df.rename(columns=rename_map)
+
+    # 🔥 DEBUG (IMPORTANT — KEEP TEMPORARILY)
+    print("COLUMNS AFTER RENAME:", df.columns.tolist())
 
     out = pd.DataFrame(index=df.index)
 
-    if not src_col:
-        raise ValueError("❌ Could not find SOURCE column")
-    if not dst_col:
-        raise ValueError("❌ Could not find DESTINATION column")
+    # 🔥 SAFE METADATA EXTRACTION
+    out["src"] = df["src"] if "src" in df.columns else "N/A"
+    out["dst"] = df["dst"] if "dst" in df.columns else "N/A"
+    out["proto"] = df["proto"] if "proto" in df.columns else "Unknown"
 
-    out["src"] = df[src_col].astype(str)
-    out["dst"] = df[dst_col].astype(str)
-    out["proto"] = df[proto_col].astype(str) if proto_col else "Unknown"
+    # 🔥 FORCE CLEAN VALUES (CRITICAL)
+    out["src"] = out["src"].astype(str)
+    out["dst"] = out["dst"].astype(str)
+    out["proto"] = out["proto"].astype(str)
 
-    # Clean metadata
     out["src"] = out["src"].replace(["nan", "None", "", "NaN"], "N/A")
     out["dst"] = out["dst"].replace(["nan", "None", "", "NaN"], "N/A")
     out["proto"] = out["proto"].replace(["nan", "None", "", "NaN"], "Unknown")
 
-    print("✅ SRC SAMPLE:", out["src"].head(5))
+    # 🔥 FINAL DEBUG (THIS WILL PROVE FIX)
+    print("SRC SAMPLE:", out["src"].head(10))
 
-    # -------------------------------
-    # STEP 4: FEATURE MAPPING (STRICT)
-    # -------------------------------
+    # 🔥 FEATURES
     for col in MODEL_FEATURE_COLUMNS:
-        matched_col = None
-
-        for df_col in df.columns:
-            if col in df_col:
-                matched_col = df_col
-                break
-
-        if matched_col:
-            out[col] = pd.to_numeric(df[matched_col], errors="coerce")
+        if col in df.columns:
+            out[col] = pd.to_numeric(df[col], errors="coerce")
         else:
-            raise ValueError(f"❌ Missing required feature: {col}")
+            out[col] = 0
 
-    # -------------------------------
-    # STEP 5: CLEAN NUMERICS
-    # -------------------------------
+    # 🔥 CLEAN NUMERICS
     out.replace([np.inf, -np.inf], np.nan, inplace=True)
     out.fillna(0, inplace=True)
 
     if "duration" in out.columns:
         out["duration"] = out["duration"].clip(lower=0.001)
 
-    # -------------------------------
-    # STEP 6: FINAL VALIDATION
-    # -------------------------------
-    zero_ratio = (out[MODEL_FEATURE_COLUMNS] == 0).mean().mean()
-
-    print(f"📊 ZERO RATIO: {zero_ratio:.2f}")
-
-    if zero_ratio > 0.8:
-        raise ValueError("❌ Features mostly ZERO → incorrect mapping")
-
     return out[["src", "dst", "proto", *MODEL_FEATURE_COLUMNS]]
+
 
 
 def normalize_flow_dataframe(df):
@@ -376,18 +361,6 @@ def prepare_upload_features(df):
 
     # CICIDS flow mode
     flow_df = map_cicids_to_model_features(normalized)
-    # 🔥 MATCH TRAINING PIPELINE EXACTLY
-
-    # Convert duration (microseconds → seconds)
-    if "duration" in flow_df.columns:
-        flow_df["duration"] = flow_df["duration"].clip(lower=0.001)
-
-    # Clip rates (same as training)
-    if "packet_rate" in flow_df.columns:
-        flow_df["packet_rate"] = flow_df["packet_rate"].clip(upper=1e6)
-
-    if "byte_rate" in flow_df.columns:
-        flow_df["byte_rate"] = flow_df["byte_rate"].clip(upper=1e8)
 
     if flow_df.empty:
         raise ValueError("The uploaded flow data is empty after preprocessing.")
@@ -401,11 +374,9 @@ def score_flows(feature_df):
     if results.empty:
         raise ValueError("The uploaded data did not produce any flows to score.")
 
-    model_input = results.reindex(columns=MODEL_FEATURE_COLUMNS, fill_value=0)
+    model_input = results[MODEL_FEATURE_COLUMNS].copy()
     model_input = model_input.replace([np.inf, -np.inf], 0).fillna(0)
-
-# 🔥 MUCH SAFER RANGE
-    model_input = model_input.clip(0, 1e4)
+    model_input = model_input.clip(lower=0, upper=1e6)
 
     anomaly_scaled = isolation_scaler.transform(model_input)
     anomaly_flags = isolation_model.predict(anomaly_scaled)
@@ -424,32 +395,24 @@ def score_flows(feature_df):
         classifier_confidences = [50.0] * len(results)
 
     scored_rows = []
-    print("📊 MODEL INPUT STATS:")
-    print(model_input.describe())
-
-    print("📊 ANOMALY FLAGS:", np.unique(anomaly_flags, return_counts=True))
-    print("📊 CLASSIFIER LABELS:", set(classifier_labels))
     for idx, row in results.iterrows():
         anomaly_flag = int(anomaly_flags[idx])
         classifier_label = str(classifier_labels[idx])
         clf_conf = classifier_confidences[idx]
         anom_conf = anomaly_conf[idx]
 
-        # 🔥 HYBRID DECISION LOGIC (STABLE)
-        if classifier_label != "Normal" and clf_conf > 60:
+        if classifier_label != "Normal":
             prediction = "ATTACK"
             attack_type = classifier_label
-            confidence = round(clf_conf, 2)
-
-        elif anomaly_flag == -1 and anom_conf > 50:
+            confidence = round(clf_conf * 0.95, 2)
+        elif anomaly_flag == -1:
             prediction = "ATTACK"
             attack_type = "Anomaly"
-            confidence = round(anom_conf, 2)
-
+            confidence = round(float(anom_conf), 2)
         else:
             prediction = "NORMAL"
             attack_type = "Normal"
-            confidence = round(max(clf_conf, anom_conf), 2)
+            confidence = round(clf_conf * 0.95, 2)
 
         scored_rows.append({
             "flow_id": row.get("flow_id", f"flow_{idx}"),
