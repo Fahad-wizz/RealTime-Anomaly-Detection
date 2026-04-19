@@ -39,6 +39,7 @@ while True:
         continue
 
     feature_row = flow_features.extract_features(flow)
+    print("FLOW SIZE:", feature_row["packet_count"])
 
     # ✅ attach metadata (IMPORTANT)
     feature_row["src"] = data.get("src")
