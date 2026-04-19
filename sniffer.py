@@ -58,8 +58,6 @@ def process_packet(packet):
         if not packet_queue.full():
             packet_queue.put(data)
 
-        print(f"Captured: {src} -> {dst} ({proto})")
-
     except Exception:
         pass
 
@@ -68,7 +66,6 @@ def process_packet(packet):
 
 def start_sniffing():
     sniff(
-        iface="Wi-Fi",
         prn=process_packet,
         store=False,
         filter="ip",   # 🔥 capture only IP traffic

