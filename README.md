@@ -86,12 +86,14 @@ Most student IDS projects:
 ## 📸 Real Screenshots
 
 ### Dashboard
-![Dashboard](<img width="1920" height="853" alt="Screenshot (260)" src="https://github.com/user-attachments/assets/a320910d-549f-4901-ad4d-69dd75b0074b" />
-)
+<P align="center">
+  <img width="1920" height="853" alt="Screenshot (260)" src="https://github.com/user-attachments/assets/a320910d-549f-4901-ad4d-69dd75b0074b" width="900"/>
+</P>
 
 ### Detection Output
-![Detection](<img width="1920" height="863" alt="Screenshot (263)" src="https://github.com/user-attachments/assets/eb2055fd-408b-4a5f-b54e-70d4843110d8" />
-)
+<P align="center">
+  <img width="1920" height="863" alt="Screenshot (263)" src="https://github.com/user-attachments/assets/eb2055fd-408b-4a5f-b54e-70d4843110d8" width="900"/>
+</P>
 
 ---
 
@@ -217,13 +219,22 @@ Confidence Score
 4. python app.py
 
 ## 📂 Structure
+
+```Mermaid
 RealTime-Anomaly-Detection/
+│── dataset/
+│── models/
+│── static/
+│── templates/
+│── agent.py
+│── app.py
 │── app.py
 │── monitor.py
-│── model/
-│── utils/
-│── templates/
-│── static/
+│── model.py
+│── utils.py
+
+
+```
 
 ---
 ##🔐 Real-World Applications
