@@ -106,13 +106,12 @@ Most student IDS projects:
 
 ## 🧠 System Architecture
 
-```mermaid
 flowchart LR
-    A[Local Packet Sniffer] --> B[Feature Extraction]
-    B --> C[Preprocessing Pipeline]
-    C --> D[Cloud ML Model (Render)]
-    D --> E[Prediction API]
-    E --> F[Live Dashboard]
+    A[Packet Sniffer] --> B[Feature Extraction]
+    B --> C[Preprocessing]
+    C --> D[Cloud ML Model]
+    D --> E[API Service]
+    E --> F[Dashboard]
 
 🔥 Core Capabilities
 Real-time traffic capture
@@ -125,9 +124,6 @@ Custom anomaly packet simulation
 
 ---
 
-# 📦 PART 4/7 — ENGINEERING DEPTH (THIS IS YOUR WEAPON)
-
-```markdown
 ## 🧪 ML Pipeline (Production Ready)
 
 Raw Packets  
@@ -213,12 +209,8 @@ RealTime-Anomaly-Detection/
 
 ---
 
-# 📦 PART 6/7 — POSITIONING (Recruiter Psychology)
 
-```markdown
----
-
-## 🔐 Real-World Applications
+##🔐 Real-World Applications
 
 - Industrial IoT Security  
 - Smart City Monitoring  
