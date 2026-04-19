@@ -851,8 +851,8 @@ html[data-theme="light"] .signal-card {
     background: rgba(52, 211, 153, 0.08);
 }
 .live-default-pill {
-    border-color: rgba(211, 52, 52, 0.26);
-    background: rgba(211, 52, 52, 0.08);
+    border-color: rgba(0, 0, 0, 0.26);
+    background: rgba(1, 0, 0, 0.08);
 }
 
 .chart-box {

@@ -14,7 +14,7 @@
     }
 
     const initialMetrics = JSON.parse(metricsNode.textContent || "{}");
-    const maxPoints = 10;
+    const maxPoints = 25;
     const maxAlerts = 10;
     const css = getComputedStyle(document.documentElement);
     const colors = {
