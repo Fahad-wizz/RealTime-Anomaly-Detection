@@ -68,7 +68,7 @@ def process_packet(packet):
 
 def start_sniffing():
     sniff(
-        iface=r"\Device\NPF_{47167297-D508-44F9-B5BB-B16CFF4D74D0}",
+        iface="Wi-Fi",
         prn=process_packet,
         store=False,
         filter="ip",   # 🔥 capture only IP traffic
