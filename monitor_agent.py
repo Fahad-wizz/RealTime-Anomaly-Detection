@@ -12,7 +12,7 @@ active_attacks = {}
 # -------------------------------
 import requests
 
-RENDER_URL = "https://realtime-anomaly-detection.onrender.com"
+RENDER_URL = "https://realtime-anomaly-detection.onrender.com/api/ingest"
 
 def register_with_server(ngrok_url):
     try:
